@@ -2,7 +2,7 @@
 
 namespace Farzai\Geonames\BodyParsers;
 
-class ReadLinesBodyParser implements BodyParserInterface
+class FromText implements BodyParserInterface
 {
     /**
      * @var int

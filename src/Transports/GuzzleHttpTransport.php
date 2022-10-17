@@ -45,6 +45,6 @@ class GuzzleHttpTransport implements TransportInterface
      */
     public function sendRequest(string $method, string $url, array $options = []): ResponseInterface
     {
-        return $this->client->request($method, $url, $options);
+        return $this->client->request($method, $url);
     }
 }

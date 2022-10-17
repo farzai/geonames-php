@@ -27,7 +27,7 @@ class CollectionResource implements ResourceInterface
     /**
      * @var \Farzai\Geonames\BodyParsers\BodyParserInterface[]
      */
-    protected $bodyParsers;
+    protected $pipelineParsers;
 
     /**
      * Resource constructor.
@@ -43,9 +43,9 @@ class CollectionResource implements ResourceInterface
         };
     }
 
-    public function parseBodyUsing(array $bodyParsers)
+    public function parseBodyUsing(array $pipelineParsers)
     {
-        $this->bodyParsers = $bodyParsers;
+        $this->pipelineParsers = $pipelineParsers;
 
         return $this;
     }
@@ -135,8 +135,8 @@ class CollectionResource implements ResourceInterface
     {
         $body = $this->response->getBody();
 
-        foreach ($this->bodyParsers as $bodyParser) {
-            $body = $bodyParser->parse($body);
+        foreach ($this->pipelineParsers as $parser) {
+            $body = $parser->parse($body);
         }
 
         return $body;

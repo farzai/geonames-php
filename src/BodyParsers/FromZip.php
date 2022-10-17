@@ -4,7 +4,7 @@ namespace Farzai\Geonames\BodyParsers;
 
 use ZipArchive;
 
-class ReadFileFromZip implements BodyParserInterface
+class FromZip implements BodyParserInterface
 {
     protected string $filename;
 

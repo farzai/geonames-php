@@ -35,7 +35,7 @@ class Client
 
         return $this->createCollectionResource($response)
             ->parseBodyUsing([
-                (new BodyParsers\ReadLinesBodyParser())->startAt(1),
+                (new BodyParsers\FromText())->startAt(1),
             ])
             ->mapEntityUsing(function ($item) {
                 return Entities\LanguageEntity::parse($item);
@@ -53,7 +53,7 @@ class Client
 
         return $this->createCollectionResource($response)
             ->parseBodyUsing([
-                new BodyParsers\ReadLinesBodyParser(),
+                new BodyParsers\FromText(),
             ])
             ->mapEntityUsing(function ($item) {
                 return Entities\CountryEntity::parse($item);
@@ -71,7 +71,7 @@ class Client
 
         return $this->createCollectionResource($response)
             ->parseBodyUsing([
-                new BodyParsers\FromRegexBodyParser('/<a href="([A-Z]{2})\.zip">([A-Z]{2})\.zip<\/a>/'),
+                new BodyParsers\FromRegex('/<a href="([A-Z]{2})\.zip">([A-Z]{2})\.zip<\/a>/'),
                 new BodyParsers\ThrowWhenEmpty(new \RuntimeException('No country codes available')),
             ]);
     }
@@ -88,8 +88,8 @@ class Client
 
         return $this->createCollectionResource($response)
             ->parseBodyUsing([
-                new BodyParsers\ReadFileFromZip(strtoupper($code).'.txt'),
-                new BodyParsers\ReadLinesBodyParser(),
+                new BodyParsers\FromZip(strtoupper($code).'.txt'),
+                new BodyParsers\FromText(),
             ])
             ->mapEntityUsing(function ($item) {
                 return Entities\GeonameEntity::parse($item);

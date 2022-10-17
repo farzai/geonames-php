@@ -2,7 +2,7 @@
 
 namespace Farzai\Geonames\BodyParsers;
 
-class FromRegexBodyParser implements BodyParserInterface
+class FromRegex implements BodyParserInterface
 {
     protected $regex;
 
