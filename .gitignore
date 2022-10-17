@@ -1,0 +1,7 @@
+/.vscode
+/.fleet
+/.idea
+/vendor
+composer.lock
+.DS_Store
+

@@ -1,0 +1,21 @@
+{
+    "name": "farzai/geonames",
+    "type": "library",
+    "description": "This package provides a simple way to download Geonames data and format it for friendly use.",
+    "keywords": ["geonames", "import"],
+    "require": {
+        "php": "^7.4|^8.0",
+        "ext-json": "*",
+        "ext-zip": "*",
+        "psr/http-message": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "mockery/mockery": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Farzai\\Geonames\\": "src/"
+        }
+    }
+}
