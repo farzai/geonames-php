@@ -28,6 +28,19 @@ namespace Farzai\Geonames\Entities;
 class CountryEntity extends AbstractEntity implements CountryEntityInterface
 {
     /**
+     * Cast attributes
+     *
+     * @var array
+     */
+    protected $casts = [
+        'iso_numeric' => 'string',
+        'area' => 'float',
+        'geoname_id' => 'string',
+        'population' => 'int',
+        'phone' => 'string',
+    ];
+
+    /**
      * Get identify key
      *
      * @return string
@@ -35,16 +48,6 @@ class CountryEntity extends AbstractEntity implements CountryEntityInterface
     public function getIdentifyKeyName(): string
     {
         return 'iso';
-    }
-
-    /**
-     * Get country code
-     *
-     * @return string
-     */
-    public function getCode()
-    {
-        return $this->iso;
     }
 
     /**

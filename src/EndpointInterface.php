@@ -34,4 +34,19 @@ interface EndpointInterface
      * @return \Farzai\Geonames\Responses\ResponseInterface
      */
     public function getGeonamesByCountryCode(string $countryCode): ResponseInterface;
+
+    /**
+     * Get alternate names page
+     *
+     * @return \Farzai\Geonames\Responses\ResponseInterface
+     */
+    public function getAlternateNamesDownloadPage(): ResponseInterface;
+
+    /**
+     * Get alternate names by country code
+     *
+     * @param  string  $countryCode
+     * @return \Farzai\Geonames\Responses\ResponseInterface
+     */
+    public function getAlternateNamesByCountryCode(string $countryCode): ResponseInterface;
 }

@@ -97,6 +97,42 @@ class Client
     }
 
     /**
+     * Get available of alternate names
+     *
+     * @return CollectionResource
+     */
+    public function getAlternateNamesAvailable(): CollectionResource
+    {
+        $response = $this->endpoint->getAlternateNamesDownloadPage();
+
+        return $this->createCollectionResource($response)
+            ->parseBodyUsing([
+                new BodyParsers\FromRegex('/<a href="([A-Z]{2})\.zip">([A-Z]{2})\.zip<\/a>/'),
+                new BodyParsers\ThrowWhenEmpty(new \RuntimeException('No country codes available')),
+            ]);
+    }
+
+    /**
+     * Get alternate names by country code
+     *
+     * @param  string  $countryCode
+     * @return CollectionResource
+     */
+    public function getAlternateNamesByCountryCode(string $code): CollectionResource
+    {
+        $response = $this->endpoint->getAlternateNamesByCountryCode($code);
+
+        return $this->createCollectionResource($response)
+            ->parseBodyUsing([
+                new BodyParsers\FromZip(strtoupper($code).'.txt'),
+                new BodyParsers\FromText(),
+            ])
+            ->mapEntityUsing(function ($item) {
+                return Entities\AlternateNameEntity::parse($item);
+            });
+    }
+
+    /**
      * Create resource from response
      *
      * @param  ResponseInterface  $response

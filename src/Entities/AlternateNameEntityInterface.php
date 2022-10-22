@@ -5,13 +5,6 @@ namespace Farzai\Geonames\Entities;
 interface AlternateNameEntityInterface extends EntityInterface
 {
     /**
-     * Get alternate id
-     *
-     * @return mixed
-     */
-    public function getId();
-
-    /**
      * Get geoname id
      *
      * @return mixed
@@ -23,12 +16,12 @@ interface AlternateNameEntityInterface extends EntityInterface
      *
      * @return string
      */
-    public function getName();
+    public function getName(): string;
 
     /**
-     * Get country code
+     * Get language code
      *
      * @return string
      */
-    public function getCountryCode();
+    public function getLanguageCode(): string;
 }

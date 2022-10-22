@@ -5,7 +5,7 @@ namespace Farzai\Geonames\Entities;
 /**
  * Class GeonameEntity
  *
- * @property string $geoname_id
+ * @property string $id
  * @property string $name
  * @property string $ascii_name
  * @property string $alternate_names
@@ -13,7 +13,7 @@ namespace Farzai\Geonames\Entities;
  * @property string $longitude
  * @property string $feature_class
  * @property string $feature_code
- * @property string $country_code
+ * @property string $country_code ISO-3166 2-letter country code, 2 characters
  * @property string $cc2
  * @property string $admin1_code
  * @property string $admin2_code
@@ -27,10 +27,21 @@ namespace Farzai\Geonames\Entities;
  */
 class GeonameEntity extends AbstractEntity implements GeonameEntityInterface
 {
+    /**
+     * @var array
+     */
+    protected $casts = [
+        'id' => 'string',
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'population' => 'int',
+        'elevation' => 'int',
+    ];
+
     public static function getFields(): array
     {
         return [
-            'geoname_id',
+            'id',
             'name',
             'ascii_name',
             'alternate_names',
@@ -59,7 +70,7 @@ class GeonameEntity extends AbstractEntity implements GeonameEntityInterface
      */
     public function getIdentifyKeyName(): string
     {
-        return 'geoname_id';
+        return 'id';
     }
 
     /**
@@ -74,6 +85,7 @@ class GeonameEntity extends AbstractEntity implements GeonameEntityInterface
 
     /**
      * Get country code
+     * ISO-3166 2-letter country code, 2 characters
      *
      * @return string
      */

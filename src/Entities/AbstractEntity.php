@@ -47,7 +47,7 @@ abstract class AbstractEntity implements EntityInterface
      */
     public function getIdentifier(): string
     {
-        return $this->{$this->getIdentifyKeyName()};
+        return (string) $this->{$this->getIdentifyKeyName()};
     }
 
     /**
@@ -57,9 +57,15 @@ abstract class AbstractEntity implements EntityInterface
      */
     public function toArray(): array
     {
-        return array_merge($this->attributes, [
+        $attributes = array_merge($this->attributes, [
             'id' => $this->getIdentifier(),
         ]);
+
+        foreach ($this->attributes as $key => $value) {
+            $attributes[$key] = $this->{$key};
+        }
+
+        return $attributes;
     }
 
     /**

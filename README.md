@@ -1,15 +1,17 @@
 # Geoname data (PHP)
 
 This package provides a simple way to download Geonames data and format it for friendly use.
-
+(https://www.geonames.org/)
 
 ## Requirements
 ```
 PHP >= 7.4
+ext-curl
+ext-json
+ext-zip
 ```
 
-
-## Installation
+## Setup via Composer
 ```bash
 composer require farzai/geonames
 ```
@@ -31,7 +33,7 @@ $json = $resource->asJson(); // String
 ```
 
 
-### Note
+### Customizing the client
 By default, the package has a dependency on `guzzlehttp/guzzle` to download the data. If you want to use a different HTTP client, you can install the package without the default dependency and use your own HTTP client.
 
  
@@ -82,31 +84,27 @@ $client = new Client(new MySymfonyTransport());
 // GET: https://download.geonames.org/export/dump/countryInfo.txt
 $resource = $client->getCountryInfo();
 
-// Farzai/Geonames/Entities/CountryEntity[]
-$entities = $resource->all();
-
-foreach ($entities as $entity) {
-    // Available attributes
-    // --------------------
-    // $entity->iso
-    // $entity->iso3
-    // $entity->iso_numeric
-    // $entity->fips
-    // $entity->country
-    // $entity->capital
-    // $entity->area
-    // $entity->population
-    // $entity->continent
-    // $entity->tld
-    // $entity->currency_code
-    // $entity->currency_name
-    // $entity->phone
-    // $entity->postal_code_format
-    // $entity->postal_code_regex
-    // $entity->languages
-    // $entity->geoname_id
-    // $entity->neighbours
-    // $entity->equivalent_fips_code
+/** @var \Farzai\Geonames\Entities\CountryEntity $entity */
+foreach ($resource->all() as $entity) {
+    $entity->iso // string
+    $entity->iso3 // string
+    $entity->iso_numeric // string
+    $entity->fips  // string
+    $entity->country // string
+    $entity->capital // string
+    $entity->area // float
+    $entity->population // int
+    $entity->continent // string
+    $entity->tld // string
+    $entity->currency_code // string
+    $entity->currency_name // string
+    $entity->phone // string
+    $entity->postal_code_format // string
+    $entity->postal_code_regex // string
+    $entity->languages // string (comma separated: fa,en,ar-AE)
+    $entity->geoname_id // string
+    $entity->neighbours // string (comma separated: IR,AF,PK,OM,SA,AE,IQ)
+    $entity->equivalent_fips_code // string
 }
 ```
 
@@ -116,18 +114,87 @@ foreach ($entities as $entity) {
 // GET: https://download.geonames.org/export/dump/iso-languagecodes.txt
 $resource = $client->getLanguages();
 
-// Farzai/Geonames/Entities/LanguageEntity[]
-$entities = $resource->all();
-
-foreach ($entities as $entity) {
-    // Available attributes
-    // --------------------
-    // $entity->iso_639_3
-    // $entity->iso_639_2
-    // $entity->iso_639_1
-    // $entity->language_name
+/**
+ * @var \Farzai\Geonames\Entities\LanguageEntity $entity
+ */
+foreach ($resource->all() as $entity) {
+    $entity->iso_639_3 // ISO 639-3 code
+    $entity->iso_639_2 // ISO 639-2 code
+    $entity->iso_639_1 // ISO 639-1 code
+    $entity->language_name // Language name
 }
 ```
+
+
+### Geonames available resources
+```php
+// GET: https://download.geonames.org/export/dump
+$resource = $client->getGeonamesAvailable();
+
+/** @var string[] $countryCodes */
+$countryCodes = $resource->all();
+```
+
+### Geonames by country code
+```php
+// GET: https://download.geonames.org/export/dump/{countryCode}.zip
+$resource = $client->getGeonamesByCountryCode('TH');
+
+/** @var \Farzai\Geonames\Entities\GeonameEntity $entity */
+foreach ($resource->all() as $entity) {
+    $entity->id // string
+    $entity->name // string
+    $entity->asciiname // string
+    $entity->alternatenames // string (comma separated)
+    $entity->latitude // float
+    $entity->longitude // float
+    $entity->feature_class // string
+    $entity->feature_code // string
+    $entity->country_code // string
+    $entity->cc2 // string (comma separated)
+    $entity->admin1_code // string
+    $entity->admin2_code // string
+    $entity->admin3_code // string
+    $entity->admin4_code // string
+    $entity->population // int
+    $entity->elevation // int
+    $entity->dem // int
+    $entity->timezone // string (Example: Asia/Bangkok)
+    $entity->modification_date // string (YYYY-MM-DD)
+}
+```
+
+
+### Alternate names available resources
+```php
+// GET: https://download.geonames.org/export/dump/alternatenames
+$resource = $client->getAlternateNamesAvailable();
+
+/** @var string[] $countryCodes */
+$countryCodes = $resource->all();
+```
+
+### Alternate names by country code
+```php
+// GET: https://download.geonames.org/export/dump/alternatenames/{countryCode}.zip
+$resource = $client->getAlternateNamesByCountryCode('TH');
+
+/** @var \Farzai\Geonames\Entities\AlternateNameEntity $entity */
+foreach ($resource->all() as $entity) {
+    $entity->id // string
+    $entity->geoname_id // string
+    $entity->iso_language // string
+    $entity->name // string (Alternate name)
+    $entity->is_preferred_name // bool
+    $entity->is_short_name // bool
+    $entity->is_colloquial // bool
+    $entity->is_historic // bool
+    $entity->from // string (YYYY-MM-DD)
+    $entity->to // string (YYYY-MM-DD)
+}
+```
+
+
 
 ## License
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.

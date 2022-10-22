@@ -13,6 +13,7 @@ interface GeonameEntityInterface extends EntityInterface
 
     /**
      * Get country code
+     * ISO-3166 2-letter country code, 2 characters
      *
      * @return string
      */

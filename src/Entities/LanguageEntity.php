@@ -38,17 +38,6 @@ class LanguageEntity extends AbstractEntity implements LanguageEntityInterface
     }
 
     /**
-     * Get language code
-     * (ISO 639-3)
-     *
-     * @return string
-     */
-    public function getCode()
-    {
-        return $this->iso_639_3;
-    }
-
-    /**
      * Get language name
      *
      * @return string

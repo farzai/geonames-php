@@ -71,6 +71,29 @@ class Endpoint implements EndpointInterface
     }
 
     /**
+     * Get alternate names page
+     *
+     * @return \Farzai\Geonames\Responses\ResponseInterface
+     */
+    public function getAlternateNamesDownloadPage(): ResponseInterface
+    {
+        return $this->get('/alternatenames');
+    }
+
+    /**
+     * Get alternate names by country code
+     *
+     * @param  string  $countryCode
+     * @return \Farzai\Geonames\Responses\ResponseInterface
+     */
+    public function getAlternateNamesByCountryCode(string $countryCode): ResponseInterface
+    {
+        $countryCode = strtoupper(trim($countryCode));
+
+        return $this->get("/alternatenames/{$countryCode}.zip");
+    }
+
+    /**
      * Set transport
      * Transport is used to send request to geonames
      *
