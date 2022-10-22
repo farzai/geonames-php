@@ -15,26 +15,65 @@ ext-zip
 ```bash
 composer require farzai/geonames
 ```
+or you can add this to your composer.json file
+```json
+{
+    "require": {
+        "farzai/geonames": "^1.0"
+    }
+}
+```
+Next, run the Composer update command from the Terminal:
+```bash
+composer update
+```
 
-## Usage
 
+## Note
+By default, the package required `guzzlehttp/guzzle` to download the data from Geonames.org.
+You must install `GuzzleHttp` before use this package.
+```bash
+composer require guzzlehttp/guzzle
+```
+or you can add this to your composer.json file
+```json
+{
+    "require": {
+        "guzzlehttp/guzzle": "^7.0"
+    }
+}
+```
+Next, run the Composer update command from the Terminal:
+```bash
+composer update
+```
+
+## Example
 ```php
 use Farzai\Geonames\Client;
 use Farzai\Geonames\Responses\ResponseInterface;
 
+// Create a new client
 $client = new Client();
 
-// Example: Get all countries
-$resource = $geonames->getCountryInfo();
+// Get all countries and return $resource
+/** @var \Farzai\Geonames\Resource\CollectionResource $resource */
+$resource = $client->getCountryInfo();
 
-// After getting the resource, you can access the data using the following methods:
+// Now, you can access the data using the following methods:
 $countries = $resource->asArray(); // Array
 $json = $resource->asJson(); // String
+
+// Or acccess data as entity
+foreach ($resource->all() as $country) {
+    /** @var \Farzai\Geonames\Entities\CountryEntity $country */
+    echo $country->name;
+}
 ```
 
 
 ### Customizing the client
-By default, the package has a dependency on `guzzlehttp/guzzle` to download the data. If you want to use a different HTTP client, you can install the package without the default dependency and use your own HTTP client.
+If you want to use a different HTTP client, you can install the package without the default dependency and use your own HTTP client.
 
  
 After that, You must create new transport class and implement `Farzai\Geonames\Transports\TransportInterface`.
@@ -90,7 +129,7 @@ foreach ($resource->all() as $entity) {
     $entity->iso3 // string
     $entity->iso_numeric // string
     $entity->fips  // string
-    $entity->country // string
+    $entity->name // string
     $entity->capital // string
     $entity->area // float
     $entity->population // int

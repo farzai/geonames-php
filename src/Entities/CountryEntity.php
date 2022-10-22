@@ -9,7 +9,7 @@ namespace Farzai\Geonames\Entities;
  * @property string $iso3
  * @property string $iso_numeric
  * @property string $fips
- * @property string $country
+ * @property string $name
  * @property string $capital
  * @property string $area
  * @property string $population
@@ -72,7 +72,7 @@ class CountryEntity extends AbstractEntity implements CountryEntityInterface
             'iso3',
             'iso_numeric',
             'fips',
-            'country',
+            'name',
             'capital',
             'area',
             'population',
