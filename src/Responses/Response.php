@@ -24,7 +24,7 @@ class Response implements ResponseInterface
      */
     public function getPsrResponse(): PsrResponseInterface
     {
-        return $this->psrResponse;
+        return $this->response;
     }
 
     /**
