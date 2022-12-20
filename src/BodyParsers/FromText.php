@@ -46,7 +46,7 @@ class FromText implements BodyParserInterface
         $body = preg_replace('/^#.*$/m', '', $body);
 
         // Delete empty lines and trim
-        $lines = array_filter(explode(PHP_EOL, $body), fn ($line) => ! empty(trim($line)));
+        $lines = array_filter(explode(PHP_EOL, $body), fn ($line) => !empty(trim($line)));
 
         $rowItems = array_map(function ($rawItem) {
             return $this->normalizeItem(explode("\t", $rawItem));
@@ -80,7 +80,7 @@ class FromText implements BodyParserInterface
                 return (int) $value;
             }
 
-            return $value;
+            return trim((string)$value);
         }, $rawItem);
     }
 }

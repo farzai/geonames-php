@@ -27,7 +27,7 @@ class FromZip implements BodyParserInterface
 
         @file_put_contents($tempName, $body);
 
-        if (! file_exists($tempName)) {
+        if (!file_exists($tempName)) {
             throw new \RuntimeException('Cannot create temp file');
         }
 
@@ -43,6 +43,8 @@ class FromZip implements BodyParserInterface
             return $file;
         }
 
+        echo 'Error code: ' . $zip->status . "\n";
+        echo 'Temp file: ' . $tempName . "\n";
         throw new \Exception('Could not open zip file');
     }
 }

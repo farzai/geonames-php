@@ -13,6 +13,10 @@ class FromRegex implements BodyParserInterface
 
     public function parse($body)
     {
+        if (empty($this->regex)) {
+            return [];
+        }
+
         preg_match_all($this->regex, $body, $matches);
 
         return $this->normalizeItem($matches[1]);
@@ -20,8 +24,8 @@ class FromRegex implements BodyParserInterface
 
     protected function normalizeItem($item)
     {
-        return array_map(function ($value) {
+        return array_filter(array_map(function ($value) {
             return trim($value);
-        }, $item);
+        }, $item));
     }
 }
