@@ -1,5 +1,9 @@
 # Geoname data (PHP)
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/farzai/geonames.svg?style=flat-square)](https://packagist.org/packages/farzai/geonames-php)
+[![Tests](https://img.shields.io/github/actions/workflow/status/farzai/geonames-php/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/farzai/geonames-php/actions/workflows/run-tests.yml)
+[![Total Downloads](https://img.shields.io/packagist/dt/farzai/geonames.svg?style=flat-square)](https://packagist.org/packages/farzai/geonames)
+
 This package provides a simple way to download Geonames data and format it for friendly use.
 (https://www.geonames.org/)
 
@@ -12,6 +16,7 @@ ext-zip
 ```
 
 ## Setup via Composer
+You can install the package via composer:
 ```bash
 composer require farzai/geonames
 ```
