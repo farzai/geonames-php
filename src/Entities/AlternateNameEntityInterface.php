@@ -13,15 +13,11 @@ interface AlternateNameEntityInterface extends EntityInterface
 
     /**
      * Get alternate name
-     *
-     * @return string
      */
     public function getName(): string;
 
     /**
      * Get language code
-     *
-     * @return string
      */
     public function getLanguageCode(): string;
 }

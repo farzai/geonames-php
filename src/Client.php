@@ -16,8 +16,6 @@ class Client
 
     /**
      * Client constructor.
-     *
-     * @param  TransportInterface|null  $transport
      */
     public function __construct(TransportInterface $transport = null)
     {
@@ -26,8 +24,6 @@ class Client
 
     /**
      * Get language codes
-     *
-     * @return \Farzai\Geonames\Resource\CollectionResource
      */
     public function getLanguages(): CollectionResource
     {
@@ -44,8 +40,6 @@ class Client
 
     /**
      * Get contry info
-     *
-     * @return CollectionResource
      */
     public function getCountryInfo(): CollectionResource
     {
@@ -62,8 +56,6 @@ class Client
 
     /**
      * Get geoname countries available
-     *
-     * @return CollectionResource
      */
     public function getGeonamesAvailable(): CollectionResource
     {
@@ -80,7 +72,6 @@ class Client
      * Get geonames by country code
      *
      * @param  string  $countryCode
-     * @return CollectionResource
      */
     public function getGeonamesByCountryCode(string $code): CollectionResource
     {
@@ -98,8 +89,6 @@ class Client
 
     /**
      * Get available of alternate names
-     *
-     * @return CollectionResource
      */
     public function getAlternateNamesAvailable(): CollectionResource
     {
@@ -116,7 +105,6 @@ class Client
      * Get alternate names by country code
      *
      * @param  string  $countryCode
-     * @return CollectionResource
      */
     public function getAlternateNamesByCountryCode(string $code): CollectionResource
     {
@@ -134,9 +122,6 @@ class Client
 
     /**
      * Create resource from response
-     *
-     * @param  ResponseInterface  $response
-     * @return CollectionResource
      */
     protected function createCollectionResource(ResponseInterface $response): CollectionResource
     {

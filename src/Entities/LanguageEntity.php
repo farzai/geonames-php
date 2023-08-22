@@ -14,8 +14,6 @@ class LanguageEntity extends AbstractEntity implements LanguageEntityInterface
 {
     /**
      * Get fields
-     *
-     * @return array
      */
     public static function getFields(): array
     {
@@ -29,8 +27,6 @@ class LanguageEntity extends AbstractEntity implements LanguageEntityInterface
 
     /**
      * Get identify key
-     *
-     * @return string
      */
     public function getIdentifyKeyName(): string
     {

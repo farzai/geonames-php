@@ -11,17 +11,11 @@ class Response implements ResponseInterface
      */
     private $response;
 
-    /**
-     * @param  \Psr\Http\Message\ResponseInterface  $response
-     */
     public function __construct(PsrResponseInterface $response)
     {
         $this->response = $response;
     }
 
-    /**
-     * @return PsrResponseInterface
-     */
     public function getPsrResponse(): PsrResponseInterface
     {
         return $this->response;
@@ -29,8 +23,6 @@ class Response implements ResponseInterface
 
     /**
      * Is response successful
-     *
-     * @return bool
      */
     public function isSuccessful(): bool
     {
@@ -39,8 +31,6 @@ class Response implements ResponseInterface
 
     /**
      * Get response body
-     *
-     * @return string
      */
     public function getBody(): string
     {

@@ -42,8 +42,6 @@ abstract class AbstractEntity implements EntityInterface
 
     /**
      * Get identifier
-     *
-     * @return string
      */
     public function getIdentifier(): string
     {
@@ -70,8 +68,6 @@ abstract class AbstractEntity implements EntityInterface
 
     /**
      * For printing
-     *
-     * @return string
      */
     public function __toString(): string
     {

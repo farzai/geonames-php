@@ -31,8 +31,6 @@ class CollectionResource implements ResourceInterface
 
     /**
      * Resource constructor.
-     *
-     * @param  ResponseInterface  $response
      */
     public function __construct(ResponseInterface $response)
     {
@@ -52,8 +50,6 @@ class CollectionResource implements ResourceInterface
 
     /**
      * Get response
-     *
-     * @return ResponseInterface
      */
     public function getResponse(): ResponseInterface
     {
@@ -62,8 +58,6 @@ class CollectionResource implements ResourceInterface
 
     /**
      * Return entites
-     *
-     * @return array
      */
     public function all(): array
     {
@@ -78,8 +72,6 @@ class CollectionResource implements ResourceInterface
 
     /**
      * Return response as array
-     *
-     * @return array
      */
     public function asArray(): array
     {
@@ -94,8 +86,6 @@ class CollectionResource implements ResourceInterface
 
     /**
      * Return response as json
-     *
-     * @return string
      */
     public function asJson(): string
     {
@@ -104,26 +94,17 @@ class CollectionResource implements ResourceInterface
 
     /**
      * To string
-     *
-     * @return string
      */
     public function __toString(): string
     {
         return $this->response->getBody();
     }
 
-    /**
-     * @return array
-     */
     public function jsonSerialize(): array
     {
         return $this->all();
     }
 
-    /**
-     * @param  callable  $callback
-     * @return ResourceInterface
-     */
     public function mapEntityUsing(callable $callback): ResourceInterface
     {
         $this->mapEntityCallback = $callback;

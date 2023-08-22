@@ -17,7 +17,6 @@ class FromText implements BodyParserInterface
     /**
      * Start at line
      *
-     * @param  int  $index
      * @return $this
      */
     public function startAt(int $index)
@@ -30,7 +29,6 @@ class FromText implements BodyParserInterface
     /**
      * End at line
      *
-     * @param  int  $index
      * @return $this
      */
     public function endAt(int $index)
@@ -46,7 +44,7 @@ class FromText implements BodyParserInterface
         $body = preg_replace('/^#.*$/m', '', $body);
 
         // Delete empty lines and trim
-        $lines = array_filter(explode(PHP_EOL, $body), fn ($line) => !empty(trim($line)));
+        $lines = array_filter(explode(PHP_EOL, $body), fn ($line) => ! empty(trim($line)));
 
         $rowItems = array_map(function ($rawItem) {
             return $this->normalizeItem(explode("\t", $rawItem));
@@ -67,7 +65,6 @@ class FromText implements BodyParserInterface
      * Normalize item
      *
      * @param  array  $item
-     * @return array
      */
     protected function normalizeItem(array $rawItem): array
     {
@@ -80,10 +77,11 @@ class FromText implements BodyParserInterface
                 if ((int) $value == $value) {
                     return (int) $value;
                 }
+
                 return (float) $value;
             }
 
-            return trim((string)$value);
+            return trim((string) $value);
         }, $rawItem);
     }
 }
