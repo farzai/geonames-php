@@ -77,7 +77,10 @@ class FromText implements BodyParserInterface
             }
 
             if (is_numeric($value)) {
-                return (int) $value;
+                if ((int) $value == $value) {
+                    return (int) $value;
+                }
+                return (float) $value;
             }
 
             return trim((string)$value);
