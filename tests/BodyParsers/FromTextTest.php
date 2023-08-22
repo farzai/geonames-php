@@ -38,4 +38,17 @@ class FromTextTest extends TestCase
 
         $this->assertEquals($expected, $parser->parse($body));
     }
+
+    public function testParseWithNumeric()
+    {
+        $parser = new FromText();
+
+        $body = "Line 1\tTitle\tBody\t13.00\t14.50\t15.5000\t16";
+        
+        $expected = [
+            ['Line 1', 'Title', 'Body', 13, 14.50, 15.5, 16],
+        ];
+
+        $this->assertEquals($expected, $parser->parse($body));
+    }
 }
