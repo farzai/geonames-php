@@ -1,38 +1,29 @@
 <?php
 
-namespace Farzai\Geonames\Tests;
-
 use Farzai\Geonames\Responses\Response;
 use GuzzleHttp\Psr7\Response as PsrResponse;
 
-class ResponseTest extends TestCase
-{
-    public function testIsSuccessfulReturnsTrueFor2xxStatusCode()
-    {
-        $response = new Response(new PsrResponse(200));
+it('should is successful returns true for 2xx status code', function () {
+    $response = new Response(new PsrResponse(200));
 
-        $this->assertTrue($response->isSuccessful());
-    }
+    expect($response->isSuccessful())->toBeTrue();
+});
 
-    public function testIsSuccessfulReturnsFalseForNon2xxStatusCode()
-    {
-        $response = new Response(new PsrResponse(400));
+it('should is successful returns false for non 2xx status code', function () {
+    $response = new Response(new PsrResponse(400));
 
-        $this->assertFalse($response->isSuccessful());
-    }
+    expect($response->isSuccessful())->toBeFalse();
+});
 
-    public function testGetBodyReturnsResponseBodyAsString()
-    {
-        $response = new Response(new PsrResponse(200, [], '{"foo": "bar"}'));
+it('should get body returns response body as string', function () {
+    $response = new Response(new PsrResponse(200, [], '{"foo": "bar"}'));
 
-        $this->assertEquals('{"foo": "bar"}', $response->getBody());
-    }
+    expect($response->getBody())->toBe('{"foo": "bar"}');
+});
 
-    public function testGetPsrResponseReturnsUnderlyingPsrResponse()
-    {
-        $psrResponse = new PsrResponse(200);
-        $response = new Response($psrResponse);
+it('should get psr response returns underlying psr response', function () {
+    $psrResponse = new PsrResponse(200);
+    $response = new Response($psrResponse);
 
-        $this->assertSame($psrResponse, $response->getPsrResponse());
-    }
-}
+    expect($response->getPsrResponse())->toBe($psrResponse);
+});

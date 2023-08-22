@@ -4,9 +4,6 @@ namespace Farzai\Geonames\Entities\Traits;
 
 trait JsonSerializableTrait
 {
-    /**
-     * @return array
-     */
     public function jsonSerialize(): array
     {
         return $this->toArray();

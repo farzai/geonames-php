@@ -65,8 +65,6 @@ class GeonameEntity extends AbstractEntity implements GeonameEntityInterface
 
     /**
      * Get identify key
-     *
-     * @return string
      */
     public function getIdentifyKeyName(): string
     {

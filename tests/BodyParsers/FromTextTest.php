@@ -1,54 +1,44 @@
 <?php
 
-namespace Farzai\Geonames\Tests\BodyParsers;
-
-use Farzai\Geonames\Tests\TestCase;
 use Farzai\Geonames\BodyParsers\FromText;
 
-class FromTextTest extends TestCase
-{
-    public function testParse()
-    {
-        $parser = new FromText();
-        $body = "Line 1\tTitle\tBody\tCreated At";
-        $expected = [['Line 1', 'Title', 'Body', 'Created At']];
+it('should parse', function () {
+    $parser = new FromText();
+    $body = "Line 1\tTitle\tBody\tCreated At";
+    $expected = [['Line 1', 'Title', 'Body', 'Created At']];
 
-        $this->assertEquals($expected, $parser->parse($body));
-    }
+    expect($parser->parse($body))->toBe($expected);
+});
 
-    public function testParseWithEmptyBody()
-    {
-        $parser = new FromText();
-        $body = '';
-        $expected = [];
+it('should parse with empty body', function () {
+    $parser = new FromText();
+    $body = '';
+    $expected = [];
 
-        $this->assertEquals($expected, $parser->parse($body));
-    }
+    expect($parser->parse($body))->toBe($expected);
+});
 
-    public function testParseWithStartAt()
-    {
-        $parser = (new FromText())->startAt(1);
-        $body = "
-            Line 1\tTitle\tBody\tCreated At
-            Line 2\tTitle\tBody\tCreated At
-        ";
-        $expected = [
-            ['Line 2', 'Title', 'Body', 'Created At'],
-        ];
+it('should parse with start at', function () {
+    $parser = (new FromText())->startAt(1);
+    $body = "
+        Line 1\tTitle\tBody\tCreated At
+        Line 2\tTitle\tBody\tCreated At
+    ";
+    $expected = [
+        ['Line 2', 'Title', 'Body', 'Created At'],
+    ];
 
-        $this->assertEquals($expected, $parser->parse($body));
-    }
+    expect($parser->parse($body))->toBe($expected);
+});
 
-    public function testParseWithNumeric()
-    {
-        $parser = new FromText();
+it('should parse with numeric', function () {
+    $parser = new FromText();
 
-        $body = "Line 1\tTitle\tBody\t13.00\t14.50\t15.5000\t16";
-        
-        $expected = [
-            ['Line 1', 'Title', 'Body', 13, 14.50, 15.5, 16],
-        ];
+    $body = "Line 1\tTitle\tBody\t13.00\t14.50\t15.5000\t16";
 
-        $this->assertEquals($expected, $parser->parse($body));
-    }
-}
+    $expected = [
+        ['Line 1', 'Title', 'Body', 13, 14.50, 15.5, 16],
+    ];
+
+    expect($parser->parse($body))->toBe($expected);
+});

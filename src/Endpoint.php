@@ -12,15 +12,11 @@ class Endpoint implements EndpointInterface
 
     /**
      * Http transport
-     *
-     * @var TransportInterface
      */
     private TransportInterface $transport;
 
     /**
      * Endpoint constructor.
-     *
-     * @param  TransportInterface  $transport
      */
     public function __construct(TransportInterface $transport)
     {
@@ -39,8 +35,6 @@ class Endpoint implements EndpointInterface
 
     /**
      * Get all countries
-     *
-     * @return \Farzai\Geonames\Responses\ResponseInterface
      */
     public function getCountryInfo(): ResponseInterface
     {
@@ -49,8 +43,6 @@ class Endpoint implements EndpointInterface
 
     /**
      * Get download page
-     *
-     * @return \Farzai\Geonames\Responses\ResponseInterface
      */
     public function getGeonamesDownloadPage(): ResponseInterface
     {
@@ -59,9 +51,6 @@ class Endpoint implements EndpointInterface
 
     /**
      * Get geonames by country code
-     *
-     * @param  string  $countryCode
-     * @return \Farzai\Geonames\Responses\ResponseInterface
      */
     public function getGeonamesByCountryCode(string $countryCode): ResponseInterface
     {
@@ -72,8 +61,6 @@ class Endpoint implements EndpointInterface
 
     /**
      * Get alternate names page
-     *
-     * @return \Farzai\Geonames\Responses\ResponseInterface
      */
     public function getAlternateNamesDownloadPage(): ResponseInterface
     {
@@ -82,9 +69,6 @@ class Endpoint implements EndpointInterface
 
     /**
      * Get alternate names by country code
-     *
-     * @param  string  $countryCode
-     * @return \Farzai\Geonames\Responses\ResponseInterface
      */
     public function getAlternateNamesByCountryCode(string $countryCode): ResponseInterface
     {
@@ -96,8 +80,6 @@ class Endpoint implements EndpointInterface
     /**
      * Set transport
      * Transport is used to send request to geonames
-     *
-     * @param  TransportInterface  $transport
      */
     public function setTransport(TransportInterface $transport): void
     {

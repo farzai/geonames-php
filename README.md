@@ -5,7 +5,7 @@ This package provides a simple way to download Geonames data and format it for f
 
 ## Requirements
 ```
-PHP >= 7.4
+PHP >= 7.4|^8.0
 ext-curl
 ext-json
 ext-zip

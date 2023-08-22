@@ -6,7 +6,6 @@ trait ArrayAccessibleTrait
 {
     /**
      * @param  mixed  $offset
-     * @return bool
      */
     public function offsetExists($offset): bool
     {
@@ -15,7 +14,6 @@ trait ArrayAccessibleTrait
 
     /**
      * @param  mixed  $offset
-     * @return mixed
      */
     public function offsetGet($offset): mixed
     {

@@ -34,8 +34,6 @@ class AlternateNameEntity extends AbstractEntity implements AlternateNameEntityI
 
     /**
      * Get identify key
-     *
-     * @return string
      */
     public function getIdentifyKeyName(): string
     {
@@ -54,8 +52,6 @@ class AlternateNameEntity extends AbstractEntity implements AlternateNameEntityI
 
     /**
      * Get alternate name
-     *
-     * @return string
      */
     public function getName(): string
     {
@@ -64,8 +60,6 @@ class AlternateNameEntity extends AbstractEntity implements AlternateNameEntityI
 
     /**
      * Get language code
-     *
-     * @return string
      */
     public function getLanguageCode(): string
     {
@@ -74,8 +68,6 @@ class AlternateNameEntity extends AbstractEntity implements AlternateNameEntityI
 
     /**
      * Get fields
-     *
-     * @return array
      */
     public static function getFields(): array
     {

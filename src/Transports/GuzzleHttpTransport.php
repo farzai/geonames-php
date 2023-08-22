@@ -9,15 +9,11 @@ class GuzzleHttpTransport implements TransportInterface
 {
     /**
      * Guzzle http client
-     *
-     * @var GuzzleHttpClient
      */
     private GuzzleHttpClient $client;
 
     /**
      * GuzzleHttpTransport constructor.
-     *
-     * @param  array  $config
      */
     public function __construct(array $config = [])
     {
@@ -37,11 +33,6 @@ class GuzzleHttpTransport implements TransportInterface
 
     /**
      * Send request to geonames
-     *
-     * @param  string  $method
-     * @param  string  $url
-     * @param  array  $options
-     * @return \Psr\Http\Message\ResponseInterface
      */
     public function sendRequest(string $method, string $url, array $options = []): ResponseInterface
     {

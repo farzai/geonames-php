@@ -4,13 +4,15 @@
     "description": "This package provides a simple way to download Geonames data and format it for friendly use.",
     "keywords": ["geonames", "import"],
     "require": {
-        "php": ">=7.4",
+        "php": ">=7.4|^8.0",
         "ext-json": "*",
         "ext-zip": "*",
-        "psr/http-message": "^1.0",
-        "squizlabs/php_codesniffer": "^3.7"
+        "psr/http-message": "^1.0"
     },
     "require-dev": {
+        "pestphp/pest": "^1.20",
+        "laravel/pint": "^1.2",
+        "spatie/ray": "^1.28",
         "phpunit/phpunit": "^9.5",
         "mockery/mockery": "^1.4",
         "guzzlehttp/guzzle": "^7.5"
@@ -25,8 +27,18 @@
             "Farzai\\Geonames\\Tests\\": "tests/"
         }
     },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
     "scripts": {
-        "test": "phpunit",
-        "cs": "phpcs"
-    }
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

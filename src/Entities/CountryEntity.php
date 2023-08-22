@@ -42,8 +42,6 @@ class CountryEntity extends AbstractEntity implements CountryEntityInterface
 
     /**
      * Get identify key
-     *
-     * @return string
      */
     public function getIdentifyKeyName(): string
     {
@@ -62,8 +60,6 @@ class CountryEntity extends AbstractEntity implements CountryEntityInterface
 
     /**
      * Get fields
-     *
-     * @return array
      */
     public static function getFields(): array
     {
