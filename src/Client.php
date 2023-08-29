@@ -21,8 +21,7 @@ class Client
     public function __construct(
         private ?PsrClientInterface $client = null,
         private ?PsrLoggerInterface $logger = null,
-    )
-    {
+    ) {
         $transport = TransportBuilder::make();
         if ($this->client) {
             $transport->setClient($this->client);

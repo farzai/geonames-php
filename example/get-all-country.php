@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__.'/../vendor/autoload.php';
 
 use Farzai\Geonames\Client;
 
@@ -30,7 +30,7 @@ $countries = $resource->asArray();
         <?php
             if (count($countries) > 0) {
                 $headers = array_keys($countries[0]);
-            ?>
+                ?>
 
             <table class="mt-4 w-full border-collapse border border-gray-400">
                 <thead class="bg-gray-200">
