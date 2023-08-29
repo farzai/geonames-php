@@ -2,7 +2,7 @@
 
 namespace Farzai\Geonames;
 
-use Farzai\Geonames\Responses\ResponseInterface;
+use Farzai\Transport\Contracts\ResponseInterface;
 
 interface EndpointInterface
 {

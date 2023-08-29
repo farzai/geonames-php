@@ -2,15 +2,15 @@
 
 use Farzai\Geonames\BodyParsers;
 use Farzai\Geonames\Resource\CollectionResource;
-use Farzai\Geonames\Responses\Response;
-use GuzzleHttp\Psr7\Response as GuzzleResponse;
+use Farzai\Transport\Response;
+use GuzzleHttp\Psr7\Response as PsrResponse;
+use Psr\Http\Message\RequestInterface as PsrRequestInterface;
 
 it('should all returned mapped entities', function () {
-    $psrResponse = new GuzzleResponse(200, [], "Line 1\tTitle\tBody\tCreated At");
+    $request = $this->createMock(PsrRequestInterface::class);
+    $psrResponse = new PsrResponse(200, [], "Line 1\tTitle\tBody\tCreated At");
 
-    $response = new Response($psrResponse);
-
-    $resource = new CollectionResource($response);
+    $resource = new CollectionResource(new Response($request, $psrResponse));
     $resource
         ->parseBodyUsing([
             new BodyParsers\FromText(),

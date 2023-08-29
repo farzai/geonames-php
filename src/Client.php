@@ -3,9 +3,10 @@
 namespace Farzai\Geonames;
 
 use Farzai\Geonames\Resource\CollectionResource;
-use Farzai\Geonames\Responses\ResponseInterface;
-use Farzai\Geonames\Transports\GuzzleHttpTransport;
-use Farzai\Geonames\Transports\TransportInterface;
+use Farzai\Transport\Contracts\ResponseInterface;
+use Farzai\Transport\TransportBuilder;
+use Psr\Http\Client\ClientInterface as PsrClientInterface;
+use Psr\Log\LoggerInterface as PsrLoggerInterface;
 
 class Client
 {
@@ -17,9 +18,21 @@ class Client
     /**
      * Client constructor.
      */
-    public function __construct(TransportInterface $transport = null)
+    public function __construct(
+        private ?PsrClientInterface $client = null,
+        private ?PsrLoggerInterface $logger = null,
+    )
     {
-        $this->endpoint = new Endpoint($transport ?: new GuzzleHttpTransport());
+        $transport = TransportBuilder::make();
+        if ($this->client) {
+            $transport->setClient($this->client);
+        }
+
+        if ($this->logger) {
+            $transport->setLogger($this->logger);
+        }
+
+        $this->endpoint = new Endpoint($transport->build());
     }
 
     /**
