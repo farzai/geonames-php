@@ -41,9 +41,9 @@ class CollectionResource implements ResourceInterface
         };
     }
 
-    public function parseBodyUsing(array $pipelineParsers)
+    public function parseBodyUsing(array $parsers)
     {
-        $this->pipelineParsers = $pipelineParsers;
+        $this->pipelineParsers = $parsers;
 
         return $this;
     }
@@ -92,19 +92,6 @@ class CollectionResource implements ResourceInterface
         return json_encode($this);
     }
 
-    /**
-     * To string
-     */
-    public function __toString(): string
-    {
-        return $this->response->getBody();
-    }
-
-    public function jsonSerialize(): array
-    {
-        return $this->all();
-    }
-
     public function mapEntityUsing(callable $callback): ResourceInterface
     {
         $this->mapEntityCallback = $callback;
@@ -122,4 +109,18 @@ class CollectionResource implements ResourceInterface
 
         return $body;
     }
+    
+    /**
+     * To string
+     */
+    public function __toString(): string
+    {
+        return $this->response->getBody();
+    }
+
+    public function jsonSerialize(): array
+    {
+        return $this->all();
+    }
+
 }
