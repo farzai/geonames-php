@@ -22,13 +22,6 @@ You can install the package via Composer:
 composer require farzai/geonames
 ```
 
-## Note
-By default, the package required `guzzlehttp/guzzle` to download the data from Geonames.org.
-You must install `GuzzleHttp` before use this package.
-```bash
-composer require guzzlehttp/guzzle
-```
-
 ## Example
 ```php
 use Farzai\Geonames\Client;

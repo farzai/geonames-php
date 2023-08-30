@@ -63,10 +63,8 @@ class FromText implements BodyParserInterface
 
     /**
      * Normalize item
-     *
-     * @param  array  $item
      */
-    protected function normalizeItem(array $rawItem): array
+    protected function normalizeItem(array $item): array
     {
         return array_map(function ($value) {
             if (is_null($value)) {
@@ -82,6 +80,6 @@ class FromText implements BodyParserInterface
             }
 
             return trim((string) $value);
-        }, $rawItem);
+        }, $item);
     }
 }

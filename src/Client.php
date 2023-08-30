@@ -82,16 +82,14 @@ class Client
 
     /**
      * Get geonames by country code
-     *
-     * @param  string  $countryCode
      */
-    public function getGeonamesByCountryCode(string $code): CollectionResource
+    public function getGeonamesByCountryCode(string $countryCode): CollectionResource
     {
-        $response = $this->endpoint->getGeonamesByCountryCode($code);
+        $response = $this->endpoint->getGeonamesByCountryCode($countryCode);
 
         return $this->createCollectionResource($response)
             ->parseBodyUsing([
-                new BodyParsers\FromZip(strtoupper($code).'.txt'),
+                new BodyParsers\FromZip(strtoupper($countryCode).'.txt'),
                 new BodyParsers\FromText(),
             ])
             ->mapEntityUsing(function ($item) {
@@ -115,16 +113,14 @@ class Client
 
     /**
      * Get alternate names by country code
-     *
-     * @param  string  $countryCode
      */
-    public function getAlternateNamesByCountryCode(string $code): CollectionResource
+    public function getAlternateNamesByCountryCode(string $countryCode): CollectionResource
     {
-        $response = $this->endpoint->getAlternateNamesByCountryCode($code);
+        $response = $this->endpoint->getAlternateNamesByCountryCode($countryCode);
 
         return $this->createCollectionResource($response)
             ->parseBodyUsing([
-                new BodyParsers\FromZip(strtoupper($code).'.txt'),
+                new BodyParsers\FromZip(strtoupper($countryCode).'.txt'),
                 new BodyParsers\FromText(),
             ])
             ->mapEntityUsing(function ($item) {

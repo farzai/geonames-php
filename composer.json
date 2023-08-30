@@ -5,15 +5,11 @@
     "keywords": ["geonames", "countries", "data"],
     "require": {
         "php": "^8.1",
-        "ext-json": "*",
-        "ext-zip": "*",
         "farzai/transport": "^1.0.0"
     },
     "require-dev": {
-        "pestphp/pest": "^1.20",
+        "pestphp/pest": "^2.8",
         "spatie/ray": "^1.28",
-        "mockery/mockery": "^1.4",
-        "guzzlehttp/guzzle": "^7.5",
         "laravel/pint": "^1.2",
         "phpstan/extension-installer": "^1.1",
         "phpstan/phpstan-deprecation-rules": "^1.0",
@@ -39,7 +35,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "php-http/discovery": true
         }
     },
     "scripts": {
@@ -48,6 +45,11 @@
         "format": "vendor/bin/pint",
         "analyse": "vendor/bin/phpstan analyse"
     },
+    "suggest": {
+        "guzzlehttp/guzzle": "Required to download the data from Geonames.",
+        "ext-zip": "Required to extract the downloaded data."
+    },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "license": "MIT"
 }

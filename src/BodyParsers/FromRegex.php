@@ -4,11 +4,11 @@ namespace Farzai\Geonames\BodyParsers;
 
 class FromRegex implements BodyParserInterface
 {
-    protected $regex;
-
-    public function __construct($regex)
-    {
-        $this->regex = $regex;
+    public function __construct(
+        protected string $regex,
+        protected $flags = 0
+    ) {
+        //
     }
 
     public function parse($body)
@@ -17,9 +17,11 @@ class FromRegex implements BodyParserInterface
             return [];
         }
 
-        preg_match_all($this->regex, $body, $matches);
+        if (preg_match_all($this->regex, $body, $matches, $this->flags)) {
+            return $this->normalizeItem($matches[1]);
+        }
 
-        return $this->normalizeItem($matches[1]);
+        return [];
     }
 
     protected function normalizeItem($item)

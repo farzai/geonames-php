@@ -23,8 +23,6 @@ interface EndpointInterface
 
     /**
      * Get geonames by country code
-     *
-     * @param  string  $file
      */
     public function getGeonamesByCountryCode(string $countryCode): ResponseInterface;
 

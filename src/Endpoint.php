@@ -27,10 +27,8 @@ class Endpoint implements EndpointInterface
 
     /**
      * Get language codes
-     *
-     * @return \Farzai\Geonames\Responses\ResponseInterface
      */
-    public function getLanguageCodes(): Response
+    public function getLanguageCodes(): ResponseInterface
     {
         return $this->get('iso-languagecodes.txt');
     }
@@ -81,8 +79,6 @@ class Endpoint implements EndpointInterface
 
     /**
      * Call GET request
-     *
-     * @param  string  $endpoint
      */
     private function get(string $path): ResponseInterface
     {

@@ -30,7 +30,7 @@ class CountryEntity extends AbstractEntity implements CountryEntityInterface
     /**
      * Cast attributes
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
         'iso_numeric' => 'string',

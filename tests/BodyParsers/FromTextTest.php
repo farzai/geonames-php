@@ -5,7 +5,9 @@ use Farzai\Geonames\BodyParsers\FromText;
 it('should parse', function () {
     $parser = new FromText();
     $body = "Line 1\tTitle\tBody\tCreated At";
-    $expected = [['Line 1', 'Title', 'Body', 'Created At']];
+    $expected = [
+        ['Line 1', 'Title', 'Body', 'Created At'],
+    ];
 
     expect($parser->parse($body))->toBe($expected);
 });

@@ -3,24 +3,25 @@
 use Farzai\Geonames\BodyParsers\FromRegex;
 
 it('should parse', function () {
-    $parser = new FromRegex('/^(.*)$/m');
     $body = "Line 1\nLine 2\nLine 3";
+    $parser = new FromRegex('/^(.*)$/m');
+
     $expected = ['Line 1', 'Line 2', 'Line 3'];
 
     expect($parser->parse($body))->toBe($expected);
 });
 
 it('should parse with empty body', function () {
-    $parser = new FromRegex('/^(.*)$/m');
     $body = '';
+    $parser = new FromRegex('/^(.*)$/');
     $expected = [];
 
     expect($parser->parse($body))->toBe($expected);
 });
 
 it('should parse with empty regex', function () {
-    $parser = new FromRegex('');
     $body = "Line 1\nLine 2\nLine 3";
+    $parser = new FromRegex('');
     $expected = [];
 
     expect($parser->parse($body))->toBe($expected);
