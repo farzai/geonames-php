@@ -109,7 +109,7 @@ class CollectionResource implements ResourceInterface
 
         return $body;
     }
-    
+
     /**
      * To string
      */
@@ -122,5 +122,4 @@ class CollectionResource implements ResourceInterface
     {
         return $this->all();
     }
-
 }
