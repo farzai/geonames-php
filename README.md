@@ -2,6 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/farzai/geonames.svg?style=flat-square)](https://packagist.org/packages/farzai/geonames-php)
 [![Tests](https://img.shields.io/github/actions/workflow/status/farzai/geonames-php/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/farzai/geonames-php/actions/workflows/run-tests.yml)
+[![codecov](https://codecov.io/gh/farzai/geonames-php/branch/main/graph/badge.svg)](https://codecov.io/gh/farzai/geonames-php)
 [![Total Downloads](https://img.shields.io/packagist/dt/farzai/geonames.svg?style=flat-square)](https://packagist.org/packages/farzai/geonames)
 
 This package provides a simple way to download Geonames data and format it for friendly use.
@@ -9,54 +10,21 @@ This package provides a simple way to download Geonames data and format it for f
 
 ## Requirements
 ```
-PHP >= 7.4|^8.0
+PHP ^8.1
 ext-curl
 ext-json
 ext-zip
 ```
 
-## Setup via Composer
-You can install the package via composer:
+## Setup
+You can install the package via Composer:
 ```bash
 composer require farzai/geonames
-```
-or you can add this to your composer.json file
-```json
-{
-    "require": {
-        "farzai/geonames": "^1.0"
-    }
-}
-```
-Next, run the Composer update command from the Terminal:
-```bash
-composer update
-```
-
-
-## Note
-By default, the package required `guzzlehttp/guzzle` to download the data from Geonames.org.
-You must install `GuzzleHttp` before use this package.
-```bash
-composer require guzzlehttp/guzzle
-```
-or you can add this to your composer.json file
-```json
-{
-    "require": {
-        "guzzlehttp/guzzle": "^7.0"
-    }
-}
-```
-Next, run the Composer update command from the Terminal:
-```bash
-composer update
 ```
 
 ## Example
 ```php
 use Farzai\Geonames\Client;
-use Farzai\Geonames\Responses\ResponseInterface;
 
 // Create a new client
 $client = new Client();
@@ -74,47 +42,6 @@ foreach ($resource->all() as $country) {
     /** @var \Farzai\Geonames\Entities\CountryEntity $country */
     echo $country->name;
 }
-```
-
-
-### Customizing the client
-If you want to use a different HTTP client, you can install the package without the default dependency and use your own HTTP client.
-
- 
-After that, You must create new transport class and implement `Farzai\Geonames\Transports\TransportInterface`.
-
-```php
-use Farzai\Geonames\Transports\TransportInterface;
-use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
-
-class MySymfonyTransport implements TransportInterface
-{
-    /**
-     * Send request to geonames
-     *
-     * @param  string  $method
-     * @param  string  $url
-     * @param  array  $options
-     * @return \Psr\Http\Message\ResponseInterface
-     */
-    public function sendRequest(string $method, string $url, array $options = []): ResponseInterface
-    {
-        // Send request and return the response
-        // ...
-
-        return $response;
-    }
-}
-```
-
-Then, you can pass the transport class to the client:
-
-```php
-use Farzai\Geonames\Client;
-use App\Transports\MySymfonyTransport;
-
-$client = new Client(new MySymfonyTransport());
-// ...
 ```
 
 

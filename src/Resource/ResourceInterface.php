@@ -2,7 +2,7 @@
 
 namespace Farzai\Geonames\Resource;
 
-use Farzai\Geonames\Responses\ResponseInterface;
+use Farzai\Transport\Contracts\ResponseInterface;
 use JsonSerializable;
 
 interface ResourceInterface extends JsonSerializable

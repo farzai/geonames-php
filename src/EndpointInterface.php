@@ -2,7 +2,7 @@
 
 namespace Farzai\Geonames;
 
-use Farzai\Geonames\Responses\ResponseInterface;
+use Farzai\Transport\Contracts\ResponseInterface;
 
 interface EndpointInterface
 {
@@ -23,8 +23,6 @@ interface EndpointInterface
 
     /**
      * Get geonames by country code
-     *
-     * @param  string  $file
      */
     public function getGeonamesByCountryCode(string $countryCode): ResponseInterface;
 

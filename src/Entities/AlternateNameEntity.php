@@ -21,7 +21,7 @@ class AlternateNameEntity extends AbstractEntity implements AlternateNameEntityI
     /**
      * Cast attributes
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
         'id' => 'string',

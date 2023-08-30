@@ -27,9 +27,6 @@ namespace Farzai\Geonames\Entities;
  */
 class GeonameEntity extends AbstractEntity implements GeonameEntityInterface
 {
-    /**
-     * @var array
-     */
     protected $casts = [
         'id' => 'string',
         'latitude' => 'float',

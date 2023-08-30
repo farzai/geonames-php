@@ -35,7 +35,7 @@ abstract class AbstractEntity implements EntityInterface
      *
      * @param  array<string, mixed>  $attributes
      */
-    public function __construct(array $attributes = [])
+    final public function __construct(array $attributes = [])
     {
         $this->attributes = $attributes;
     }

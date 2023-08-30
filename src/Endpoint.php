@@ -2,9 +2,11 @@
 
 namespace Farzai\Geonames;
 
-use Farzai\Geonames\Responses\Response;
-use Farzai\Geonames\Responses\ResponseInterface;
-use Farzai\Geonames\Transports\TransportInterface;
+use Farzai\Transport\Contracts\ResponseInterface;
+use Farzai\Transport\Request;
+use Farzai\Transport\Response;
+use Farzai\Transport\Transport;
+use Psr\Http\Message\RequestInterface;
 
 class Endpoint implements EndpointInterface
 {
@@ -13,22 +15,20 @@ class Endpoint implements EndpointInterface
     /**
      * Http transport
      */
-    private TransportInterface $transport;
+    private Transport $transport;
 
     /**
      * Endpoint constructor.
      */
-    public function __construct(TransportInterface $transport)
+    public function __construct(Transport $transport)
     {
         $this->transport = $transport;
     }
 
     /**
      * Get language codes
-     *
-     * @return \Farzai\Geonames\Responses\ResponseInterface
      */
-    public function getLanguageCodes(): Response
+    public function getLanguageCodes(): ResponseInterface
     {
         return $this->get('iso-languagecodes.txt');
     }
@@ -78,21 +78,9 @@ class Endpoint implements EndpointInterface
     }
 
     /**
-     * Set transport
-     * Transport is used to send request to geonames
-     */
-    public function setTransport(TransportInterface $transport): void
-    {
-        $this->transport = $transport;
-    }
-
-    /**
      * Call GET request
-     *
-     * @param  string  $endpoint
-     * @return \Farzai\Geonames\Responses\ResponseInterface
      */
-    private function get(string $path)
+    private function get(string $path): ResponseInterface
     {
         if (preg_match('/^https?:\/\//', $path)) {
             $endpoint = $path;
@@ -100,6 +88,13 @@ class Endpoint implements EndpointInterface
             $endpoint = static::ENDPOINT.'/'.ltrim($path, '/');
         }
 
-        return new Response($this->transport->sendRequest('GET', $endpoint));
+        return $this->send(new Request('GET', $endpoint));
+    }
+
+    protected function send(RequestInterface $request): ResponseInterface
+    {
+        return new Response($request, $this->transport->sendRequest(
+            $request,
+        ));
     }
 }

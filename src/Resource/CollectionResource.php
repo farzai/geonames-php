@@ -3,7 +3,7 @@
 namespace Farzai\Geonames\Resource;
 
 use Farzai\Geonames\Entities\EntityInterface;
-use Farzai\Geonames\Responses\ResponseInterface;
+use Farzai\Transport\Contracts\ResponseInterface;
 
 class CollectionResource implements ResourceInterface
 {
