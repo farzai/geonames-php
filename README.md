@@ -49,7 +49,7 @@ foreach ($resource->all() as $country) {
 ## Available methods
 
 
-#### Get all countries
+### Get all countries
 ```php
 // GET: https://download.geonames.org/export/dump/countryInfo.txt
 $resource = $client->getCountryInfo();
@@ -61,30 +61,30 @@ foreach ($resource->all() as $entity) {
 }
 ```
 
-| Description | Property | Type | Example | Required |
+| Property | Type | Description | Example | Required |
 | --- | --- | --- | --- | --- |
-| ISO 3166-1 alpha-2 | iso | string | TH | Yes |
-| ISO 3166-1 alpha-3 | iso3 | string | THA | Yes |
-| ISO 3166-1 numeric | iso_numeric | string | 764 | Yes |
-| FIPS 10-4 | fips | string | TH | No |
-| Country name | name | string | Thailand | Yes |
-| Capital | capital | string | Bangkok | No |
-| Area in km² | area | float | 514000.0 | No |
-| Population | population | int | 67089500 | No |
-| Continent code | continent | string | AS | No |
-| Top level domain | tld | string | .th | No |
-| Currency code | currency_code | string | THB | No |
-| Currency name | currency_name | string | Baht | No |
-| Phone calling code | phone | string | 66 | No |
-| Postal code format | postal_code_format | string | 5 digits | No |
-| Postal code regex | postal_code_regex | string | \^[1-9]\d{4}$ | No |
-| Languages (comma separated) | languages | string | th,en,ar-AE,km,la | No |
-| Geoname ID | geoname_id | string | 1605651 | No |
-| Neighbours (comma separated) | neighbours | string | LA,MM,KH,MY | No |
-| Equivalent FIPS code | equivalent_fips_code | string | TH | No |
+| iso | string | ISO 3166-1 alpha-2 | TH | Yes |
+| iso3 | string | ISO 3166-1 alpha-3 | THA | Yes |
+| iso_numeric | string | ISO 3166-1 numeric | 764 | Yes |
+| fips | string | FIPS 10-4 | TH | No |
+| name | string | Country name | Thailand | Yes |
+| capital | string | Capital | Bangkok | No |
+| area | float | Area in km² | 514000.0 | No |
+| population | int | Population | 67089500 | No |
+| continent | string | Continent code | AS | No |
+| tld | string | Top level domain | .th | No |
+| currency_code | string | Currency code | THB | No |
+| currency_name | string | Currency name | Baht | No |
+| phone | string | Phone calling code | 66 | No |
+| postal_code_format | string | Postal code format | 5 digits | No |
+| postal_code_regex | string | Postal code regex | \^[1-9]\d{4}$ | No |
+| languages | string | Languages (comma separated) | th,en,ar-AE,km,la | No |
+| geoname_id | string | Geoname ID | 1605651 | No |
+| neighbours | string | Neighbours (comma separated) | LA,MM,KH,MY | No |
+| equivalent_fips_code | string | Equivalent FIPS code | TH | No |
 
 
-#### Get languages
+### Get languages
 ```php
 // GET: https://download.geonames.org/export/dump/iso-languagecodes.txt
 $resource = $client->getLanguages();
@@ -94,12 +94,12 @@ foreach ($resource->all() as $entity) {
     // ...
 }
 ```
-| Description | Property | Type | Example | Required |
+| Property | Type | Description | Example | Required |
 | --- | --- | --- | --- | --- |
-| ISO 639-3 code | iso_639_3 | string | tha | Yes |
-| ISO 639-2 code | iso_639_2 | string | tha | Yes |
-| ISO 639-1 code | iso_639_1 | string | th | Yes |
-| Language name | language_name | string | Thai | Yes |
+| iso_639_3 | string | ISO 639-3 code | tha | Yes |
+| iso_639_2 | string | ISO 639-2 code | tha | Yes |
+| iso_639_1 | string | ISO 639-1 code | th | Yes |
+| language_name | string | Language name | Thai | Yes |
 
 
 
@@ -122,27 +122,27 @@ foreach ($resource->all() as $entity) {
     // ...
 }
 ```
-| Description | Property | Type | Example | Required |
+| Property | Type | Description | Example | Required |
 | --- | --- | --- | --- | --- |
-| geonameid | id | string | 1605651 | Yes |
-| name of geographical point (utf8) | name | string | Ban Khlong Nung | Yes |
-| name of geographical point in plain ascii characters | asciiname | string | Ban Khlong Nung | Yes |
-| alternatenames, comma separated | alternatenames | string | Ban Khlong Nung,Ban Khlong Nung,Ban Khlong Nung | Yes |
-| latitude in decimal degrees (wgs84) | latitude | float | 13.75 | Yes |
-| longitude in decimal degrees (wgs84) | longitude | float | 100.46667 | Yes |
-| see http://www.geonames.org/export/codes.html | feature_class | string | P | Yes |
-| see http://www.geonames.org/export/codes.html | feature_code | string | PPL | Yes |
-| ISO-3166 2-letter country code, 2 characters | country_code | string | TH | Yes |
-| alternate country codes, comma separated, ISO-3166 2-letter country code, 60 characters | cc2 | string | TH | No |
-| fipscode (subject to change to iso code), see exceptions below, see file admin1Codes.txt for display names of this code; varchar(20) | admin1_code | string | 40 | No |
-| code for the second administrative division, a county in the US, see file admin2Codes.txt; varchar(80) | admin2_code | string | 40 | No |
-| code for third level administrative division, varchar(20) | admin3_code | string | 40 | No |
-| code for fourth level administrative division, varchar(20) | admin4_code | string | 40 | No |
-| bigint (8 byte int) | population | int | 0 | No |
-| in meters | elevation | int | 0 | No |
-| digital elevation model, srtm3 or gtopo30, average elevation of 3''x3'' (ca 90mx90m) or 30''x30'' (ca 900mx900m) area in meters, integer. srtm processed by cgiar/ciat. | dem | int | 0 | No |
-| the iana timezone id (see file timeZone.txt) varchar(40) | timezone | string | Asia/Bangkok | No |
-| date of last modification in yyyy-MM-dd format | modification_date | string | 2011-03-03 | No |
+| id | string | Geoname ID | 1605651 | Yes |
+| name | string | Name of geographical point (utf8) | Ban Khlong Nung | Yes |
+| asciiname | string | Name of geographical point in plain ascii characters | Ban Khlong Nung | Yes |
+| alternatenames | string | Alternatenames, comma separated | Ban Khlong Nung,Ban Khlong Nung,Ban Khlong Nung | Yes |
+| latitude | float | Latitude in decimal degrees (wgs84) | 13.75 | Yes |
+| longitude | float | Longitude in decimal degrees (wgs84) | 100.46667 | Yes |
+| feature_class | string | See http://www.geonames.org/export/codes.html | P | Yes |
+| feature_code | string | See http://www.geonames.org/export/codes.html | PPL | Yes |
+| country_code | string | ISO-3166 2-letter country code, 2 characters | TH | Yes |
+| cc2 | string | Alternate country codes, comma separated, ISO-3166 2-letter country code, 60 characters | TH | No |
+| admin1_code | string | Fipscode (subject to change to iso code), see exceptions below, see file admin1Codes.txt for display names of this code; varchar(20) | 40 | No |
+| admin2_code | string | Code for the second administrative division, a county in the US, see file admin2Codes.txt; varchar(80) | 40 | No |
+| admin3_code | string | Code for third level administrative division, varchar(20) | 40 | No |
+| admin4_code | string | Code for fourth level administrative division, varchar(20) | 40 | No |
+| population | int | Bigint (8 byte int) | 0 | No |
+| elevation | int | In meters | 0 | No |
+| dem | int | Digital elevation model, srtm3 or gtopo30, average elevation of 3''x3'' (ca 90mx90m) or 30''x30'' (ca 900mx900m) area in meters, integer. srtm processed by cgiar/ciat. | 0 | No |
+| timezone | string | The iana timezone id (see file timeZone.txt) varchar(40) | Asia/Bangkok | No |
+| modification_date | string | Date of last modification in yyyy-MM-dd format | 2011-03-03 | No |
 
 
 ### Alternate names available resources
@@ -159,32 +159,23 @@ $countryCodes = $resource->all();
 // GET: https://download.geonames.org/export/dump/alternatenames/{countryCode}.zip
 $resource = $client->getAlternateNamesByCountryCode('TH');
 
-/** @var \Farzai\Geonames\Entities\AlternateNameEntity $entity */
+// $entity instanceof \Farzai\Geonames\Entities\AlternateNameEntity
 foreach ($resource->all() as $entity) {
-    $entity->id // string
-    $entity->geoname_id // string
-    $entity->iso_language // string
-    $entity->name // string (Alternate name)
-    $entity->is_preferred_name // bool
-    $entity->is_short_name // bool
-    $entity->is_colloquial // bool
-    $entity->is_historic // bool
-    $entity->from // string (YYYY-MM-DD)
-    $entity->to // string (YYYY-MM-DD)
+    //
 }
 ```
-| Description | Property | Type | Example | Required |
+| Property | Type | Description | Example | Required |
 | --- | --- | --- | --- | --- |
-| the id of this alternate name, int | id | string | 1 | Yes |
-| geonameId referring to id in table 'geoname', int | geoname_id | string | 3041563 | Yes |
-| iso 639 language code 2- or 3-characters; 4-characters 'post' for postal codes and 'iata','icao' and faac for airport codes, fr_1793 for French Revolution names,  abbr for abbreviation, link to a website (mostly to wikipedia), wkdt for the wikidataid, varchar(7) | iso_language | string | en | Yes |
-| alternate name or name variant, varchar(400) | name | string | Ban Khlong Nung | Yes |
-| true, if this alternate name is an official/preferred name | is_preferred_name | bool | true | Yes |
-| true, if this is a short name like 'California' for 'State of California' | is_short_name | bool | true | Yes |
-| true, if this alternate name is a colloquial or slang term. Example: 'Big Apple' for 'New York'. | is_colloquial | bool | true | Yes |
-| true, if this alternate name is historic and was used in the past. | is_historic | bool | true | Yes |
-| from period when the name was used | from | string | 2011-03-03 | No |
-| to period when the name was used | to | string | 2011-03-03 | No |
+| id | string | the id of this alternate name | 1 | Yes |
+| geoname_id | string | geonameId referring to id in table 'geoname' | 3041563 | Yes |
+| iso_language | string | iso 639 language code 2- or 3-characters; 4-characters 'post' for postal codes and 'iata','icao' and faac for airport codes, fr_1793 for French Revolution names,  abbr for abbreviation, link to a website (mostly to wikipedia), wkdt for the wikidataid | en | Yes |
+| name | string | alternate name or name variant | Ban Khlong Nung | Yes |
+| is_preferred_name | bool | true, if this alternate name is an official/preferred name | true | Yes |
+| is_short_name | bool | true, if this is a short name like 'California' for 'State of California' | true | Yes |
+| is_colloquial | bool | true, if this alternate name is a colloquial or slang term. Example: 'Big Apple' for 'New York'. | true | Yes |
+| is_historic | bool | true, if this alternate name is historic and was used in the past. | true | Yes |
+| from | string | from period when the name was used | 2011-03-03 | No |
+| to | string | to period when the name was used | 2011-03-03 | No |
 
 
 ## License
