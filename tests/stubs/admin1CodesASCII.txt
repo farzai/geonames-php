@@ -1,0 +1,3 @@
+TH.40	Bangkok	Bangkok	1609350
+TH.41	Chiang Mai	Chiang Mai	1153671
+TH.42	Phuket	Phuket	1151254 

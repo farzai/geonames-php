@@ -14,3 +14,8 @@ psalm.xml
 /vendor
 .php-cs-fixer.cache
 test.zip
+/data
+/tests/data
+.DS_Store
+**/.DS_Store
+/.phpunit.cache
