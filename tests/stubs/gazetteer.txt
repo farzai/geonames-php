@@ -1,0 +1,4 @@
+1609350	Bangkok	Bangkok	Krung Thep,กรุงเทพมหานคร	13.75	100.51667	P	PPLC	TH		40		01			5104476	2	4	Asia/Bangkok	2023-01-12
+1153671	Chiang Mai	Chiang Mai	เชียงใหม่	18.79038	98.98468	P	PPLA	TH		41		01			131091	310	309	Asia/Bangkok	2023-01-12
+1151254	Phuket	Phuket	ภูเก็ต	7.89059	98.3981	P	PPLA	TH		42					77612	5	5	Asia/Bangkok	2023-01-12
+ 
