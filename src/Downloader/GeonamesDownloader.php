@@ -11,7 +11,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class GeonamesDownloader
 {
     private const BASE_URL = 'https://download.geonames.org/export/zip/';
+
     private Client $client;
+
     private ?OutputInterface $output = null;
 
     public function __construct(?Client $client = null)
@@ -24,6 +26,7 @@ class GeonamesDownloader
     public function setOutput(OutputInterface $output): self
     {
         $this->output = $output;
+
         return $this;
     }
 
@@ -32,10 +35,10 @@ class GeonamesDownloader
      */
     public function download(string $countryCode, string $destination): void
     {
-        $filename = strtoupper($countryCode) . '.zip';
-        $url = self::BASE_URL . $filename;
-        
-        $this->downloadWithProgress($url, $destination . '/' . $filename);
+        $filename = strtoupper($countryCode).'.zip';
+        $url = self::BASE_URL.$filename;
+
+        $this->downloadWithProgress($url, $destination.'/'.$filename);
     }
 
     /**
@@ -43,8 +46,8 @@ class GeonamesDownloader
      */
     public function downloadAll(string $destination): void
     {
-        $url = self::BASE_URL . 'allCountries.zip';
-        $this->downloadWithProgress($url, $destination . '/allCountries.zip');
+        $url = self::BASE_URL.'allCountries.zip';
+        $this->downloadWithProgress($url, $destination.'/allCountries.zip');
     }
 
     /**
@@ -58,7 +61,7 @@ class GeonamesDownloader
 
         $totalSize = (int) $response->getHeader('Content-Length')[0];
         $body = $response->getBody();
-        
+
         $progressBar = null;
         if ($this->output) {
             $progressBar = new ProgressBar($this->output, $totalSize);
@@ -69,7 +72,7 @@ class GeonamesDownloader
         $handle = fopen($destination, 'wb');
         $downloaded = 0;
 
-        while (!$body->eof()) {
+        while (! $body->eof()) {
             $chunk = $body->read(8192);
             fwrite($handle, $chunk);
             $downloaded += strlen($chunk);
@@ -86,4 +89,4 @@ class GeonamesDownloader
 
         fclose($handle);
     }
-} 
+}

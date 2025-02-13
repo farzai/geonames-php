@@ -9,14 +9,14 @@ use GuzzleHttp\Psr7\Response;
 
 beforeEach(function () {
     // Create test data if it doesn't exist
-    if (!file_exists(__DIR__ . '/../stubs/TH.zip')) {
-        require __DIR__ . '/../stubs/create_test_data.php';
+    if (! file_exists(__DIR__.'/../stubs/TH.zip')) {
+        require __DIR__.'/../stubs/create_test_data.php';
     }
 });
 
 test('postal codes downloader can download country data', function () {
-    $zipContent = file_get_contents(__DIR__ . '/../stubs/TH.zip');
-    
+    $zipContent = file_get_contents(__DIR__.'/../stubs/TH.zip');
+
     // Create a mock response
     $mock = new MockHandler([
         new Response(200, ['Content-Length' => strlen($zipContent)], $zipContent),
@@ -32,10 +32,10 @@ test('postal codes downloader can download country data', function () {
 });
 
 test('gazetteer downloader can download country data and admin codes', function () {
-    $zipContent = file_get_contents(__DIR__ . '/../stubs/TH_gaz.zip');
-    $admin1Content = file_get_contents(__DIR__ . '/../stubs/admin1CodesASCII.txt');
-    $admin2Content = file_get_contents(__DIR__ . '/../stubs/admin2Codes.txt');
-    
+    $zipContent = file_get_contents(__DIR__.'/../stubs/TH_gaz.zip');
+    $admin1Content = file_get_contents(__DIR__.'/../stubs/admin1CodesASCII.txt');
+    $admin2Content = file_get_contents(__DIR__.'/../stubs/admin2Codes.txt');
+
     // Create mock responses for country data and admin codes
     $mock = new MockHandler([
         new Response(200, ['Content-Length' => strlen($zipContent)], $zipContent),
@@ -52,4 +52,4 @@ test('gazetteer downloader can download country data and admin codes', function 
     expect(file_exists($this->getTestDataPath('TH.zip')))->toBeTrue()
         ->and(file_exists($this->getTestDataPath('admin1CodesASCII.txt')))->toBeTrue()
         ->and(file_exists($this->getTestDataPath('admin2Codes.txt')))->toBeTrue();
-}); 
+});

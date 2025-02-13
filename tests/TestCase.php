@@ -11,13 +11,13 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         // Create data directory if it doesn't exist
-        $dataDir = __DIR__ . '/data';
-        if (!is_dir($dataDir)) {
+        $dataDir = __DIR__.'/data';
+        if (! is_dir($dataDir)) {
             mkdir($dataDir, 0777, true);
         }
 
         // Ensure directory is writable
-        if (!is_writable($dataDir)) {
+        if (! is_writable($dataDir)) {
             chmod($dataDir, 0777);
         }
     }
@@ -27,17 +27,17 @@ abstract class TestCase extends BaseTestCase
         parent::tearDown();
 
         // Cleanup test data
-        $this->cleanupDirectory(__DIR__ . '/data');
+        $this->cleanupDirectory(__DIR__.'/data');
     }
 
     protected function getTestDataPath(string $path = ''): string
     {
-        return __DIR__ . '/data/' . ltrim($path, '/');
+        return __DIR__.'/data/'.ltrim($path, '/');
     }
 
     private function cleanupDirectory(string $dir): void
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return;
         }
 
@@ -55,4 +55,4 @@ abstract class TestCase extends BaseTestCase
             }
         }
     }
-} 
+}

@@ -6,16 +6,16 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 beforeEach(function () {
     // Create test data if it doesn't exist
-    if (!file_exists(__DIR__ . '/../stubs/TH.zip')) {
-        require __DIR__ . '/../stubs/create_test_data.php';
+    if (! file_exists(__DIR__.'/../stubs/TH.zip')) {
+        require __DIR__.'/../stubs/create_test_data.php';
     }
 });
 
 test('postal codes converter can convert zip to json', function () {
     // Copy test data
-    copy(__DIR__ . '/../stubs/TH.zip', $this->getTestDataPath('TH.zip'));
+    copy(__DIR__.'/../stubs/TH.zip', $this->getTestDataPath('TH.zip'));
 
-    $converter = new PostalCodeConverter();
+    $converter = new PostalCodeConverter;
     $converter->convert(
         $this->getTestDataPath('TH.zip'),
         $this->getTestDataPath('TH.json')
@@ -43,23 +43,23 @@ test('postal codes converter can convert zip to json', function () {
 
 test('gazetteer converter can convert zip to json with admin codes', function () {
     // Copy test data
-    copy(__DIR__ . '/../stubs/TH_gaz.zip', $this->getTestDataPath('TH.zip'));
-    copy(__DIR__ . '/../stubs/admin1CodesASCII.txt', $this->getTestDataPath('admin1CodesASCII.txt'));
-    copy(__DIR__ . '/../stubs/admin2Codes.txt', $this->getTestDataPath('admin2Codes.txt'));
+    copy(__DIR__.'/../stubs/TH_gaz.zip', $this->getTestDataPath('TH.zip'));
+    copy(__DIR__.'/../stubs/admin1CodesASCII.txt', $this->getTestDataPath('admin1CodesASCII.txt'));
+    copy(__DIR__.'/../stubs/admin2Codes.txt', $this->getTestDataPath('admin2Codes.txt'));
 
     // Debug: Check if files exist and show their contents
-    $output = new ConsoleOutput();
+    $output = new ConsoleOutput;
     $output->writeln('<info>Test files:</info>');
     foreach (['TH.zip', 'admin1CodesASCII.txt', 'admin2Codes.txt'] as $file) {
         $path = $this->getTestDataPath($file);
         $output->writeln(sprintf('<info>%s exists: %s</info>', $file, file_exists($path) ? 'yes' : 'no'));
-        if (file_exists($path) && !str_ends_with($file, '.zip')) {
+        if (file_exists($path) && ! str_ends_with($file, '.zip')) {
             $output->writeln('<info>Content:</info>');
             $output->writeln(file_get_contents($path));
         }
     }
 
-    $converter = new GazetteerConverter();
+    $converter = new GazetteerConverter;
     $converter->setOutput($output);
     $converter->convert(
         $this->getTestDataPath('TH.zip'),
@@ -97,4 +97,4 @@ test('gazetteer converter can convert zip to json with admin codes', function ()
             'timezone',
             'modification_date',
         ]);
-}); 
+});

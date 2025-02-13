@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Farzai\Geonames\Converter;
 
+use Generator;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 use ZipArchive;
-use Generator;
 
 class PostalCodeConverter
 {
@@ -16,6 +16,7 @@ class PostalCodeConverter
     public function setOutput(OutputInterface $output): self
     {
         $this->output = $output;
+
         return $this;
     }
 
@@ -24,32 +25,32 @@ class PostalCodeConverter
      */
     public function convert(string $zipFile, string $outputFile): void
     {
-        $zip = new ZipArchive();
-        
+        $zip = new ZipArchive;
+
         if ($zip->open($zipFile) !== true) {
-            throw new \RuntimeException('Failed to open ZIP file: ' . $zipFile);
+            throw new \RuntimeException('Failed to open ZIP file: '.$zipFile);
         }
 
         // Extract to temporary directory
-        $tempDir = sys_get_temp_dir() . '/geonames_' . uniqid();
+        $tempDir = sys_get_temp_dir().'/geonames_'.uniqid();
         mkdir($tempDir);
         $zip->extractTo($tempDir);
         $zip->close();
 
         // Find the txt file
-        $files = glob($tempDir . '/*.txt');
+        $files = glob($tempDir.'/*.txt');
         if (empty($files)) {
             throw new \RuntimeException('No .txt file found in ZIP archive');
         }
         $txtFile = $files[0];
-        
+
         // Convert to JSON with progress bar
         $this->convertToJson($txtFile, $outputFile);
 
         // Cleanup all files in temp directory
         $files = new \DirectoryIterator($tempDir);
         foreach ($files as $file) {
-            if (!$file->isDot()) {
+            if (! $file->isDot()) {
                 unlink($file->getPathname());
             }
         }
@@ -62,7 +63,7 @@ class PostalCodeConverter
     private function convertToJson(string $txtFile, string $outputFile): void
     {
         $totalLines = $this->countLines($txtFile);
-        
+
         $progressBar = null;
         if ($this->output) {
             $progressBar = new ProgressBar($this->output, $totalLines);
@@ -72,10 +73,10 @@ class PostalCodeConverter
 
         $handle = fopen($outputFile, 'wb');
         fwrite($handle, "[\n");
-        
+
         $first = true;
         foreach ($this->streamRecords($txtFile) as $index => $record) {
-            if (!$first) {
+            if (! $first) {
                 fwrite($handle, ",\n");
             }
             fwrite($handle, json_encode($record, JSON_UNESCAPED_UNICODE));
@@ -101,10 +102,10 @@ class PostalCodeConverter
     private function streamRecords(string $txtFile): Generator
     {
         $handle = fopen($txtFile, 'r');
-        
+
         while (($line = fgets($handle)) !== false) {
-            $data = str_getcsv(trim($line), "\t", '"', "\\");
-            
+            $data = str_getcsv(trim($line), "\t", '"', '\\');
+
             if (count($data) < 9) {
                 continue;
             }
@@ -136,11 +137,12 @@ class PostalCodeConverter
         $handle = fopen($file, 'r');
         $lines = 0;
 
-        while (!feof($handle)) {
+        while (! feof($handle)) {
             $lines += substr_count(fread($handle, 8192), "\n");
         }
 
         fclose($handle);
+
         return $lines;
     }
-} 
+}

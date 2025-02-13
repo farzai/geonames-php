@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Farzai\Geonames\Converter;
 
-use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 use ZipArchive;
-use Generator;
 
 class GazetteerConverter
 {
     private ?OutputInterface $output = null;
+
     private array $admin1Codes = [];
+
     private array $admin2Codes = [];
 
     public function setOutput(OutputInterface $output): self
     {
         $this->output = $output;
+
         return $this;
     }
 
@@ -29,39 +30,39 @@ class GazetteerConverter
         // Load admin codes first
         $this->loadAdminCodes($adminCodesDir);
 
-        $zip = new ZipArchive();
-        
+        $zip = new ZipArchive;
+
         if ($zip->open($zipFile) !== true) {
-            throw new \RuntimeException('Failed to open ZIP file: ' . $zipFile);
+            throw new \RuntimeException('Failed to open ZIP file: '.$zipFile);
         }
 
         // Extract to temporary directory
-        $tempDir = sys_get_temp_dir() . '/geonames_' . uniqid();
+        $tempDir = sys_get_temp_dir().'/geonames_'.uniqid();
         mkdir($tempDir);
         $zip->extractTo($tempDir);
         $zip->close();
 
         // Find the txt file
-        $files = glob($tempDir . '/*.txt');
+        $files = glob($tempDir.'/*.txt');
         if (empty($files)) {
             throw new \RuntimeException('No .txt file found in ZIP archive');
         }
         $txtFile = $files[0];
 
         if ($this->output) {
-            $this->output->writeln('<info>Reading file: ' . $txtFile . '</info>');
+            $this->output->writeln('<info>Reading file: '.$txtFile.'</info>');
             $content = file_get_contents($txtFile);
             $this->output->writeln('<info>File content:</info>');
             $this->output->writeln($content);
         }
-        
+
         // Convert to JSON with progress bar
         $this->processTextFile($txtFile, $outputFile);
 
         // Cleanup all files in temp directory
         $files = new \DirectoryIterator($tempDir);
         foreach ($files as $file) {
-            if (!$file->isDot()) {
+            if (! $file->isDot()) {
                 unlink($file->getPathname());
             }
         }
@@ -83,7 +84,7 @@ class GazetteerConverter
         }
 
         // Load admin1 codes
-        $admin1File = $adminCodesDir . '/admin1CodesASCII.txt';
+        $admin1File = $adminCodesDir.'/admin1CodesASCII.txt';
         if (file_exists($admin1File)) {
             $handle = fopen($admin1File, 'r');
             while (($line = fgets($handle)) !== false) {
@@ -98,7 +99,7 @@ class GazetteerConverter
         }
 
         // Load admin2 codes
-        $admin2File = $adminCodesDir . '/admin2Codes.txt';
+        $admin2File = $adminCodesDir.'/admin2Codes.txt';
         if (file_exists($admin2File)) {
             $handle = fopen($admin2File, 'r');
             while (($line = fgets($handle)) !== false) {
@@ -126,7 +127,7 @@ class GazetteerConverter
     private function processTextFile(string $txtFile, string $outputFile): void
     {
         if ($this->output) {
-            $this->output->writeln('<info>Reading file: ' . $txtFile . '</info>');
+            $this->output->writeln('<info>Reading file: '.$txtFile.'</info>');
             $content = file_get_contents($txtFile);
             $this->output->writeln('<info>File content:</info>');
             $this->output->writeln($content);
@@ -147,9 +148,10 @@ class GazetteerConverter
             // Check if we have enough fields
             if (count($fields) < 19) {
                 if ($this->output) {
-                    $this->output->writeln('<error>Invalid data line: ' . $line . '</error>');
-                    $this->output->writeln('<error>Field count: ' . count($fields) . '</error>');
+                    $this->output->writeln('<error>Invalid data line: '.$line.'</error>');
+                    $this->output->writeln('<error>Field count: '.count($fields).'</error>');
                 }
+
                 continue;
             }
 
@@ -195,7 +197,7 @@ class GazetteerConverter
      */
     private function getAdmin1Name(string $countryCode, string $admin1Code): string
     {
-        return $this->admin1Codes[$countryCode . '.' . $admin1Code] ?? '';
+        return $this->admin1Codes[$countryCode.'.'.$admin1Code] ?? '';
     }
 
     /**
@@ -203,6 +205,6 @@ class GazetteerConverter
      */
     private function getAdmin2Name(string $countryCode, string $admin1Code, string $admin2Code): string
     {
-        return $this->admin2Codes[$countryCode . '.' . $admin1Code . '.' . $admin2Code] ?? '';
+        return $this->admin2Codes[$countryCode.'.'.$admin1Code.'.'.$admin2Code] ?? '';
     }
-} 
+}

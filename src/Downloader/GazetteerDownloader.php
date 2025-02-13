@@ -11,7 +11,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class GazetteerDownloader
 {
     private const BASE_URL = 'https://download.geonames.org/export/dump/';
+
     private Client $client;
+
     private ?OutputInterface $output = null;
 
     public function __construct(?Client $client = null)
@@ -24,6 +26,7 @@ class GazetteerDownloader
     public function setOutput(OutputInterface $output): self
     {
         $this->output = $output;
+
         return $this;
     }
 
@@ -32,10 +35,10 @@ class GazetteerDownloader
      */
     public function download(string $countryCode, string $destination): void
     {
-        $filename = strtoupper($countryCode) . '.zip';
-        $url = self::BASE_URL . $filename;
-        
-        $this->downloadWithProgress($url, $destination . '/' . $filename);
+        $filename = strtoupper($countryCode).'.zip';
+        $url = self::BASE_URL.$filename;
+
+        $this->downloadWithProgress($url, $destination.'/'.$filename);
 
         // Download admin codes
         $this->downloadAdminCodes($destination);
@@ -46,8 +49,8 @@ class GazetteerDownloader
      */
     public function downloadAll(string $destination): void
     {
-        $url = self::BASE_URL . 'allCountries.zip';
-        $this->downloadWithProgress($url, $destination . '/allCountries.zip');
+        $url = self::BASE_URL.'allCountries.zip';
+        $this->downloadWithProgress($url, $destination.'/allCountries.zip');
 
         // Download admin codes
         $this->downloadAdminCodes($destination);
@@ -64,11 +67,11 @@ class GazetteerDownloader
         ];
 
         foreach ($files as $file) {
-            $url = self::BASE_URL . $file;
+            $url = self::BASE_URL.$file;
             if ($this->output) {
                 $this->output->writeln(sprintf('<info>Downloading %s...</info>', $file));
             }
-            $this->downloadWithProgress($url, $destination . '/' . $file);
+            $this->downloadWithProgress($url, $destination.'/'.$file);
         }
     }
 
@@ -83,7 +86,7 @@ class GazetteerDownloader
 
         $totalSize = (int) $response->getHeader('Content-Length')[0];
         $body = $response->getBody();
-        
+
         $progressBar = null;
         if ($this->output) {
             $progressBar = new ProgressBar($this->output, $totalSize);
@@ -94,7 +97,7 @@ class GazetteerDownloader
         $handle = fopen($destination, 'wb');
         $downloaded = 0;
 
-        while (!$body->eof()) {
+        while (! $body->eof()) {
             $chunk = $body->read(8192);
             fwrite($handle, $chunk);
             $downloaded += strlen($chunk);
@@ -111,4 +114,4 @@ class GazetteerDownloader
 
         fclose($handle);
     }
-} 
+}
