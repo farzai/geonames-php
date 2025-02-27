@@ -2,6 +2,14 @@
 
 All notable changes to `geonames-php` will be documented in this file.
 
+## 2.1.0 - 2025-02-27
+
+### What's Changed
+
+* Feature: MongoDB Output Implementation by @parsilver in https://github.com/farzai/geonames-php/pull/17
+
+**Full Changelog**: https://github.com/farzai/geonames-php/compare/2.0.0...2.1.0
+
 ## 2.0.0 - 2025-02-13
 
 ### What's Changed
