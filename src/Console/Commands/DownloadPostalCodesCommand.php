@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Farzai\Geonames\Console\Commands;
 
+use Farzai\Geonames\Converter\MongoDBPostalCodeConverter;
 use Farzai\Geonames\Converter\PostalCodeConverter;
 use Farzai\Geonames\Downloader\GeonamesDownloader;
 use Symfony\Component\Console\Command\Command;
@@ -35,7 +36,10 @@ class DownloadPostalCodesCommand extends Command
         $this
             ->addArgument('country', InputArgument::OPTIONAL, 'Country code (e.g., TH, US) or "all" for all countries')
             ->addOption('output', 'o', InputOption::VALUE_REQUIRED, 'Output directory', getcwd().'/data')
-            ->addOption('format', 'f', InputOption::VALUE_REQUIRED, 'Output format (json)', 'json');
+            ->addOption('format', 'f', InputOption::VALUE_REQUIRED, 'Output format (json, mongodb)', 'json')
+            ->addOption('mongodb-uri', null, InputOption::VALUE_REQUIRED, 'MongoDB connection URI', 'mongodb://localhost:27017')
+            ->addOption('mongodb-db', null, InputOption::VALUE_REQUIRED, 'MongoDB database name', 'geonames')
+            ->addOption('mongodb-collection', null, InputOption::VALUE_REQUIRED, 'MongoDB collection name', 'postal_codes');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -74,6 +78,34 @@ class DownloadPostalCodesCommand extends Command
 
             $output->writeln('<info>Data has been downloaded and converted successfully!</info>');
             $output->writeln(sprintf('<info>Output file: %s</info>', $jsonFile));
+        } elseif ($format === 'mongodb') {
+            $output->writeln('<info>Converting to MongoDB format...</info>');
+
+            // Create MongoDB converter
+            $mongodbUri = $input->getOption('mongodb-uri');
+            $mongodbDb = $input->getOption('mongodb-db');
+            $mongodbCollection = $input->getOption('mongodb-collection');
+
+            $mongoConverter = new MongoDBPostalCodeConverter(
+                $mongodbUri,
+                $mongodbDb,
+                $mongodbCollection
+            );
+            $mongoConverter->setOutput($output);
+
+            // Convert and import to MongoDB
+            $jsonFile = str_replace('.zip', '.json', $zipFile); // Dummy file name, not used
+            $mongoConverter->convert($zipFile, $jsonFile);
+
+            // Remove ZIP file after conversion
+            unlink($zipFile);
+
+            $output->writeln('<info>Data has been downloaded and imported to MongoDB successfully!</info>');
+            $output->writeln(sprintf('<info>MongoDB: %s.%s</info>', $mongodbDb, $mongodbCollection));
+        } else {
+            $output->writeln(sprintf('<error>Unsupported format: %s</error>', $format));
+
+            return Command::FAILURE;
         }
 
         return Command::SUCCESS;

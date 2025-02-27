@@ -49,7 +49,8 @@
     },
     "suggest": {
         "guzzlehttp/guzzle": "Required to download the data from Geonames.",
-        "ext-zip": "Required to extract the downloaded data."
+        "ext-zip": "Required to extract the downloaded data.",
+        "mongodb/mongodb": "Required for MongoDB output format support."
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
