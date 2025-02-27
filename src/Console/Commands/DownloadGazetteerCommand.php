@@ -89,26 +89,26 @@ class DownloadGazetteerCommand extends Command
             $output->writeln(sprintf('<info>Output file: %s</info>', $jsonFile));
         } elseif ($format === 'mongodb') {
             $output->writeln('<info>Converting to MongoDB format...</info>');
-            
+
             // Create MongoDB converter
             $mongodbUri = $input->getOption('mongodb-uri');
             $mongodbDb = $input->getOption('mongodb-db');
             $mongodbCollection = $input->getOption('mongodb-collection');
-            
+
             $mongoConverter = new MongoDBGazetteerConverter(
                 $mongodbUri,
                 $mongodbDb,
                 $mongodbCollection
             );
             $mongoConverter->setOutput($output);
-            
+
             // Convert and import to MongoDB
             $jsonFile = str_replace('.zip', '.json', $zipFile); // Dummy file name, not used
             $mongoConverter->convert($zipFile, $jsonFile, $outputDir);
-            
+
             // Remove ZIP file after conversion
             unlink($zipFile);
-            
+
             // Remove admin code files
             if (file_exists($outputDir.'/admin1CodesASCII.txt')) {
                 unlink($outputDir.'/admin1CodesASCII.txt');
@@ -116,11 +116,12 @@ class DownloadGazetteerCommand extends Command
             if (file_exists($outputDir.'/admin2Codes.txt')) {
                 unlink($outputDir.'/admin2Codes.txt');
             }
-            
+
             $output->writeln('<info>Data has been downloaded and imported to MongoDB successfully!</info>');
             $output->writeln(sprintf('<info>MongoDB: %s.%s</info>', $mongodbDb, $mongodbCollection));
         } else {
             $output->writeln(sprintf('<error>Unsupported format: %s</error>', $format));
+
             return Command::FAILURE;
         }
 

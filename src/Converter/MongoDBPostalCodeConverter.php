@@ -13,8 +13,11 @@ use ZipArchive;
 class MongoDBPostalCodeConverter
 {
     private ?OutputInterface $output = null;
+
     private string $connectionString;
+
     private string $database;
+
     private string $collection;
 
     public function __construct(string $connectionString = 'mongodb://localhost:27017', string $database = 'geonames', string $collection = 'postal_codes')
@@ -57,7 +60,7 @@ class MongoDBPostalCodeConverter
      */
     public function convert(string $zipFile, string $outputFile): void
     {
-        if (!class_exists('MongoDB\Client')) {
+        if (! class_exists('MongoDB\Client')) {
             throw new \RuntimeException(
                 'MongoDB library not found. Please install it using: composer require mongodb/mongodb'
             );
@@ -66,17 +69,17 @@ class MongoDBPostalCodeConverter
         $zip = new ZipArchive;
 
         if ($zip->open($zipFile) !== true) {
-            throw new \RuntimeException('Failed to open ZIP file: ' . $zipFile);
+            throw new \RuntimeException('Failed to open ZIP file: '.$zipFile);
         }
 
         // Extract to temporary directory
-        $tempDir = sys_get_temp_dir() . '/geonames_' . uniqid();
+        $tempDir = sys_get_temp_dir().'/geonames_'.uniqid();
         mkdir($tempDir);
         $zip->extractTo($tempDir);
         $zip->close();
 
         // Find the txt file
-        $files = glob($tempDir . '/*.txt');
+        $files = glob($tempDir.'/*.txt');
         if (empty($files)) {
             throw new \RuntimeException('No .txt file found in ZIP archive');
         }
@@ -88,7 +91,7 @@ class MongoDBPostalCodeConverter
         // Cleanup all files in temp directory
         $files = new \DirectoryIterator($tempDir);
         foreach ($files as $file) {
-            if (!$file->isDot()) {
+            if (! $file->isDot()) {
                 unlink($file->getPathname());
             }
         }
@@ -118,7 +121,7 @@ class MongoDBPostalCodeConverter
         $collection->createIndex(['postal_code' => 1]);
         $collection->createIndex(['country_code' => 1, 'postal_code' => 1], ['unique' => true]);
         $collection->createIndex([
-            'location' => '2dsphere'
+            'location' => '2dsphere',
         ]);
 
         // Process and insert records in chunks for better performance
@@ -131,7 +134,7 @@ class MongoDBPostalCodeConverter
             if (isset($record['latitude']) && isset($record['longitude'])) {
                 $record['location'] = [
                     'type' => 'Point',
-                    'coordinates' => [$record['longitude'], $record['latitude']]
+                    'coordinates' => [$record['longitude'], $record['latitude']],
                 ];
             }
 
@@ -149,14 +152,14 @@ class MongoDBPostalCodeConverter
         }
 
         // Insert any remaining records
-        if (!empty($batch)) {
+        if (! empty($batch)) {
             $collection->insertMany($batch, ['ordered' => false]);
         }
 
         if ($progressBar) {
             $progressBar->finish();
             $this->output->writeln('');
-            $this->output->writeln(sprintf('<info>Imported %d records to MongoDB: %s.%s</info>', 
+            $this->output->writeln(sprintf('<info>Imported %d records to MongoDB: %s.%s</info>',
                 $count, $this->database, $this->collection));
         }
     }
@@ -202,7 +205,7 @@ class MongoDBPostalCodeConverter
         $handle = fopen($file, 'r');
         $lines = 0;
 
-        while (!feof($handle)) {
+        while (! feof($handle)) {
             $lines += substr_count(fread($handle, 8192), "\n");
         }
 
