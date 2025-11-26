@@ -5,6 +5,9 @@ parameters:
     level: 4
     paths:
         - src
+    excludePaths:
+        # MongoDB converters are excluded because MongoDB is an optional dependency
+        - src/Converter/MongoDBPostalCodeConverter.php
+        - src/Converter/MongoDBGazetteerConverter.php
     tmpDir: build/phpstan
-    checkMissingIterableValueType: false
     treatPhpDocTypesAsCertain: false

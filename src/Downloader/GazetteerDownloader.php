@@ -4,114 +4,94 @@ declare(strict_types=1);
 
 namespace Farzai\Geonames\Downloader;
 
-use GuzzleHttp\Client;
-use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Output\OutputInterface;
+use Farzai\Geonames\Exceptions\GeonamesException;
 
-class GazetteerDownloader
+/**
+ * Downloads gazetteer (geographical feature) data from the GeoNames database.
+ *
+ * This downloader fetches gazetteer ZIP files from the GeoNames export server
+ * for specific countries or all countries combined, along with administrative
+ * code mapping files.
+ */
+class GazetteerDownloader extends AbstractDownloader
 {
+    /**
+     * Base URL for GeoNames gazetteer downloads.
+     */
     private const BASE_URL = 'https://download.geonames.org/export/dump/';
 
-    private Client $client;
-
-    private ?OutputInterface $output = null;
-
-    public function __construct(?Client $client = null)
-    {
-        $this->client = $client ?? new Client([
-            'verify' => false,
-        ]);
-    }
-
-    public function setOutput(OutputInterface $output): self
-    {
-        $this->output = $output;
-
-        return $this;
-    }
+    /**
+     * Admin code files required for resolving administrative division names.
+     */
+    private const ADMIN_CODE_FILES = [
+        'admin1CodesASCII.txt',
+        'admin2Codes.txt',
+    ];
 
     /**
-     * Download country data
+     * Download gazetteer data for a specific country.
+     *
+     * Downloads the country's gazetteer ZIP file along with administrative
+     * code mapping files (admin1CodesASCII.txt and admin2Codes.txt).
+     *
+     * @param  string  $countryCode  ISO 3166-1 alpha-2 country code (e.g., 'US', 'TH')
+     * @param  string  $destination  Directory path where files will be saved
+     *
+     * @throws GeonamesException When the download fails
      */
     public function download(string $countryCode, string $destination): void
     {
         $filename = strtoupper($countryCode).'.zip';
-        $url = self::BASE_URL.$filename;
+        $url = $this->getBaseUrl().$filename;
 
         $this->downloadWithProgress($url, $destination.'/'.$filename);
-
-        // Download admin codes
         $this->downloadAdminCodes($destination);
     }
 
     /**
-     * Download all countries data
+     * Download gazetteer data for all countries.
+     *
+     * Downloads the allCountries.zip file which contains gazetteer data
+     * for all available countries, along with administrative code mapping files.
+     *
+     * @param  string  $destination  Directory path where files will be saved
+     *
+     * @throws GeonamesException When the download fails
      */
     public function downloadAll(string $destination): void
     {
-        $url = self::BASE_URL.'allCountries.zip';
+        $url = $this->getBaseUrl().'allCountries.zip';
         $this->downloadWithProgress($url, $destination.'/allCountries.zip');
-
-        // Download admin codes
         $this->downloadAdminCodes($destination);
     }
 
     /**
-     * Download admin codes files
+     * Download administrative code mapping files.
+     *
+     * Downloads admin1CodesASCII.txt and admin2Codes.txt which are required
+     * to resolve administrative division codes to human-readable names.
+     *
+     * @param  string  $destination  Directory path where files will be saved
+     *
+     * @throws GeonamesException When the download fails
      */
     private function downloadAdminCodes(string $destination): void
     {
-        $files = [
-            'admin1CodesASCII.txt',
-            'admin2Codes.txt',
-        ];
+        foreach (self::ADMIN_CODE_FILES as $file) {
+            $url = $this->getBaseUrl().$file;
 
-        foreach ($files as $file) {
-            $url = self::BASE_URL.$file;
-            if ($this->output) {
-                $this->output->writeln(sprintf('<info>Downloading %s...</info>', $file));
-            }
+            $this->output?->writeln(sprintf('<info>Downloading %s...</info>', $file));
             $this->downloadWithProgress($url, $destination.'/'.$file);
         }
     }
 
     /**
-     * Download file with progress bar
+     * Get the base URL for gazetteer downloads.
+     *
+     * @return string The base URL
      */
-    private function downloadWithProgress(string $url, string $destination): void
+    protected function getBaseUrl(): string
     {
-        $response = $this->client->get($url, [
-            'stream' => true,
-        ]);
-
-        $totalSize = (int) $response->getHeader('Content-Length')[0];
-        $body = $response->getBody();
-
-        $progressBar = null;
-        if ($this->output) {
-            $progressBar = new ProgressBar($this->output, $totalSize);
-            $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %memory:6s%');
-            $progressBar->start();
-        }
-
-        $handle = fopen($destination, 'wb');
-        $downloaded = 0;
-
-        while (! $body->eof()) {
-            $chunk = $body->read(8192);
-            fwrite($handle, $chunk);
-            $downloaded += strlen($chunk);
-
-            if ($progressBar) {
-                $progressBar->setProgress($downloaded);
-            }
-        }
-
-        if ($progressBar) {
-            $progressBar->finish();
-            $this->output->writeln('');
-        }
-
-        fclose($handle);
+        return self::BASE_URL;
     }
 }

@@ -4,89 +4,60 @@ declare(strict_types=1);
 
 namespace Farzai\Geonames\Downloader;
 
-use GuzzleHttp\Client;
-use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Output\OutputInterface;
+use Farzai\Geonames\Exceptions\GeonamesException;
 
-class GeonamesDownloader
+/**
+ * Downloads postal code data from the GeoNames database.
+ *
+ * This downloader fetches postal code ZIP files from the GeoNames
+ * export server for specific countries or all countries combined.
+ */
+class GeonamesDownloader extends AbstractDownloader
 {
+    /**
+     * Base URL for GeoNames postal code downloads.
+     */
     private const BASE_URL = 'https://download.geonames.org/export/zip/';
 
-    private Client $client;
-
-    private ?OutputInterface $output = null;
-
-    public function __construct(?Client $client = null)
-    {
-        $this->client = $client ?? new Client([
-            'verify' => false,
-        ]);
-    }
-
-    public function setOutput(OutputInterface $output): self
-    {
-        $this->output = $output;
-
-        return $this;
-    }
-
     /**
-     * Download postal code data for a specific country
+     * Download postal code data for a specific country.
+     *
+     * @param  string  $countryCode  ISO 3166-1 alpha-2 country code (e.g., 'US', 'TH')
+     * @param  string  $destination  Directory path where the ZIP file will be saved
+     *
+     * @throws GeonamesException When the download fails
      */
     public function download(string $countryCode, string $destination): void
     {
         $filename = strtoupper($countryCode).'.zip';
-        $url = self::BASE_URL.$filename;
+        $url = $this->getBaseUrl().$filename;
 
         $this->downloadWithProgress($url, $destination.'/'.$filename);
     }
 
     /**
-     * Download all available postal codes
+     * Download postal codes for all countries.
+     *
+     * Downloads the allCountries.zip file which contains postal codes
+     * for all available countries in a single archive.
+     *
+     * @param  string  $destination  Directory path where the ZIP file will be saved
+     *
+     * @throws GeonamesException When the download fails
      */
     public function downloadAll(string $destination): void
     {
-        $url = self::BASE_URL.'allCountries.zip';
+        $url = $this->getBaseUrl().'allCountries.zip';
         $this->downloadWithProgress($url, $destination.'/allCountries.zip');
     }
 
     /**
-     * Download file with progress bar
+     * Get the base URL for postal code downloads.
+     *
+     * @return string The base URL
      */
-    private function downloadWithProgress(string $url, string $destination): void
+    protected function getBaseUrl(): string
     {
-        $response = $this->client->get($url, [
-            'stream' => true,
-        ]);
-
-        $totalSize = (int) $response->getHeader('Content-Length')[0];
-        $body = $response->getBody();
-
-        $progressBar = null;
-        if ($this->output) {
-            $progressBar = new ProgressBar($this->output, $totalSize);
-            $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s%/%estimated:-6s% %memory:6s%');
-            $progressBar->start();
-        }
-
-        $handle = fopen($destination, 'wb');
-        $downloaded = 0;
-
-        while (! $body->eof()) {
-            $chunk = $body->read(8192);
-            fwrite($handle, $chunk);
-            $downloaded += strlen($chunk);
-
-            if ($progressBar) {
-                $progressBar->setProgress($downloaded);
-            }
-        }
-
-        if ($progressBar) {
-            $progressBar->finish();
-            $this->output->writeln('');
-        }
-
-        fclose($handle);
+        return self::BASE_URL;
     }
 }
