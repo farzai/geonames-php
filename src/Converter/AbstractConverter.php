@@ -234,7 +234,7 @@ abstract class AbstractConverter implements ConverterInterface
      */
     protected function createProgressBar(int $totalLines): ?ProgressBar
     {
-        if ($this->output === null) {
+        if ($this->output === null || $totalLines <= 0) {
             return null;
         }
 

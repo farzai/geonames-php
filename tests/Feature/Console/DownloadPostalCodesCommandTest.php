@@ -3,10 +3,7 @@
 use Farzai\Geonames\Console\Commands\DownloadPostalCodesCommand;
 use Farzai\Geonames\Converter\PostalCodeConverter;
 use Farzai\Geonames\Downloader\GeonamesDownloader;
-use GuzzleHttp\Client;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
+use Farzai\Geonames\Tests\Helpers\MockHttpClient;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -19,12 +16,10 @@ beforeEach(function () {
 
 describe('DownloadPostalCodesCommand', function () {
     describe('configure', function () {
-        it('has default name static property', function () {
-            // Verify the class has the correct default name property
-            $reflection = new ReflectionClass(DownloadPostalCodesCommand::class);
-            $property = $reflection->getProperty('defaultName');
+        it('has correct command name', function () {
+            $command = new DownloadPostalCodesCommand;
 
-            expect($property->getValue())->toBe('geonames:download');
+            expect($command->getName())->toBe('geonames:download');
         });
 
         it('has country argument', function () {
@@ -64,14 +59,12 @@ describe('DownloadPostalCodesCommand', function () {
         it('downloads and converts to JSON successfully', function () {
             $zipContent = file_get_contents(__DIR__.'/../../stubs/TH.zip');
 
-            // Create mock HTTP client
-            $mock = new MockHandler([
-                new Response(200, ['Content-Length' => strlen($zipContent)], $zipContent),
+            $transport = MockHttpClient::createTransport([
+                ['content' => $zipContent, 'headers' => ['Content-Length' => [(string) strlen($zipContent)]]],
             ]);
-            $client = new Client(['handler' => HandlerStack::create($mock)]);
 
-            // Create real downloader with mocked client and real converter
-            $downloader = new GeonamesDownloader($client);
+            // Create real downloader with mocked transport and real converter
+            $downloader = new GeonamesDownloader($transport);
             $converter = new PostalCodeConverter;
 
             $command = new DownloadPostalCodesCommand($downloader, $converter);
@@ -90,12 +83,11 @@ describe('DownloadPostalCodesCommand', function () {
         it('downloads all countries when specified', function () {
             $zipContent = file_get_contents(__DIR__.'/../../stubs/TH.zip');
 
-            $mock = new MockHandler([
-                new Response(200, ['Content-Length' => strlen($zipContent)], $zipContent),
+            $transport = MockHttpClient::createTransport([
+                ['content' => $zipContent, 'headers' => ['Content-Length' => [(string) strlen($zipContent)]]],
             ]);
-            $client = new Client(['handler' => HandlerStack::create($mock)]);
 
-            $downloader = new GeonamesDownloader($client);
+            $downloader = new GeonamesDownloader($transport);
             $converter = new PostalCodeConverter;
 
             $command = new DownloadPostalCodesCommand($downloader, $converter);
@@ -114,12 +106,11 @@ describe('DownloadPostalCodesCommand', function () {
         it('returns failure for unknown format', function () {
             $zipContent = file_get_contents(__DIR__.'/../../stubs/TH.zip');
 
-            $mock = new MockHandler([
-                new Response(200, ['Content-Length' => strlen($zipContent)], $zipContent),
+            $transport = MockHttpClient::createTransport([
+                ['content' => $zipContent, 'headers' => ['Content-Length' => [(string) strlen($zipContent)]]],
             ]);
-            $client = new Client(['handler' => HandlerStack::create($mock)]);
 
-            $downloader = new GeonamesDownloader($client);
+            $downloader = new GeonamesDownloader($transport);
             $converter = new PostalCodeConverter;
 
             $command = new DownloadPostalCodesCommand($downloader, $converter);
@@ -140,12 +131,11 @@ describe('DownloadPostalCodesCommand', function () {
         it('creates output directory if it does not exist', function () {
             $zipContent = file_get_contents(__DIR__.'/../../stubs/TH.zip');
 
-            $mock = new MockHandler([
-                new Response(200, ['Content-Length' => strlen($zipContent)], $zipContent),
+            $transport = MockHttpClient::createTransport([
+                ['content' => $zipContent, 'headers' => ['Content-Length' => [(string) strlen($zipContent)]]],
             ]);
-            $client = new Client(['handler' => HandlerStack::create($mock)]);
 
-            $downloader = new GeonamesDownloader($client);
+            $downloader = new GeonamesDownloader($transport);
             $converter = new PostalCodeConverter;
 
             $command = new DownloadPostalCodesCommand($downloader, $converter);

@@ -3,10 +3,7 @@
 use Farzai\Geonames\Console\Commands\DownloadGazetteerCommand;
 use Farzai\Geonames\Converter\GazetteerConverter;
 use Farzai\Geonames\Downloader\GazetteerDownloader;
-use GuzzleHttp\Client;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
+use Farzai\Geonames\Tests\Helpers\MockHttpClient;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -19,12 +16,10 @@ beforeEach(function () {
 
 describe('DownloadGazetteerCommand', function () {
     describe('configure', function () {
-        it('has default name static property', function () {
-            // Verify the class has the correct default name property
-            $reflection = new ReflectionClass(DownloadGazetteerCommand::class);
-            $property = $reflection->getProperty('defaultName');
+        it('has correct command name', function () {
+            $command = new DownloadGazetteerCommand;
 
-            expect($property->getValue())->toBe('geonames:gazetteer:download');
+            expect($command->getName())->toBe('geonames:gazetteer:download');
         });
 
         it('has country argument', function () {
@@ -74,15 +69,13 @@ describe('DownloadGazetteerCommand', function () {
             $admin1Content = file_get_contents(__DIR__.'/../../stubs/admin1CodesASCII.txt');
             $admin2Content = file_get_contents(__DIR__.'/../../stubs/admin2Codes.txt');
 
-            // Create mock HTTP client for country data and admin codes
-            $mock = new MockHandler([
-                new Response(200, ['Content-Length' => strlen($zipContent)], $zipContent),
-                new Response(200, ['Content-Length' => strlen($admin1Content)], $admin1Content),
-                new Response(200, ['Content-Length' => strlen($admin2Content)], $admin2Content),
+            $transport = MockHttpClient::createTransport([
+                ['content' => $zipContent, 'headers' => ['Content-Length' => [(string) strlen($zipContent)]]],
+                ['content' => $admin1Content, 'headers' => ['Content-Length' => [(string) strlen($admin1Content)]]],
+                ['content' => $admin2Content, 'headers' => ['Content-Length' => [(string) strlen($admin2Content)]]],
             ]);
-            $client = new Client(['handler' => HandlerStack::create($mock)]);
 
-            $downloader = new GazetteerDownloader($client);
+            $downloader = new GazetteerDownloader($transport);
             $converter = new GazetteerConverter;
 
             $command = new DownloadGazetteerCommand($downloader, $converter);
@@ -103,14 +96,13 @@ describe('DownloadGazetteerCommand', function () {
             $admin1Content = file_get_contents(__DIR__.'/../../stubs/admin1CodesASCII.txt');
             $admin2Content = file_get_contents(__DIR__.'/../../stubs/admin2Codes.txt');
 
-            $mock = new MockHandler([
-                new Response(200, ['Content-Length' => strlen($zipContent)], $zipContent),
-                new Response(200, ['Content-Length' => strlen($admin1Content)], $admin1Content),
-                new Response(200, ['Content-Length' => strlen($admin2Content)], $admin2Content),
+            $transport = MockHttpClient::createTransport([
+                ['content' => $zipContent, 'headers' => ['Content-Length' => [(string) strlen($zipContent)]]],
+                ['content' => $admin1Content, 'headers' => ['Content-Length' => [(string) strlen($admin1Content)]]],
+                ['content' => $admin2Content, 'headers' => ['Content-Length' => [(string) strlen($admin2Content)]]],
             ]);
-            $client = new Client(['handler' => HandlerStack::create($mock)]);
 
-            $downloader = new GazetteerDownloader($client);
+            $downloader = new GazetteerDownloader($transport);
             $converter = new GazetteerConverter;
 
             $command = new DownloadGazetteerCommand($downloader, $converter);
@@ -135,14 +127,13 @@ describe('DownloadGazetteerCommand', function () {
             $admin1Content = file_get_contents(__DIR__.'/../../stubs/admin1CodesASCII.txt');
             $admin2Content = file_get_contents(__DIR__.'/../../stubs/admin2Codes.txt');
 
-            $mock = new MockHandler([
-                new Response(200, ['Content-Length' => strlen($zipContent)], $zipContent),
-                new Response(200, ['Content-Length' => strlen($admin1Content)], $admin1Content),
-                new Response(200, ['Content-Length' => strlen($admin2Content)], $admin2Content),
+            $transport = MockHttpClient::createTransport([
+                ['content' => $zipContent, 'headers' => ['Content-Length' => [(string) strlen($zipContent)]]],
+                ['content' => $admin1Content, 'headers' => ['Content-Length' => [(string) strlen($admin1Content)]]],
+                ['content' => $admin2Content, 'headers' => ['Content-Length' => [(string) strlen($admin2Content)]]],
             ]);
-            $client = new Client(['handler' => HandlerStack::create($mock)]);
 
-            $downloader = new GazetteerDownloader($client);
+            $downloader = new GazetteerDownloader($transport);
             $converter = new GazetteerConverter;
 
             $command = new DownloadGazetteerCommand($downloader, $converter);
@@ -165,14 +156,13 @@ describe('DownloadGazetteerCommand', function () {
             $admin1Content = file_get_contents(__DIR__.'/../../stubs/admin1CodesASCII.txt');
             $admin2Content = file_get_contents(__DIR__.'/../../stubs/admin2Codes.txt');
 
-            $mock = new MockHandler([
-                new Response(200, ['Content-Length' => strlen($zipContent)], $zipContent),
-                new Response(200, ['Content-Length' => strlen($admin1Content)], $admin1Content),
-                new Response(200, ['Content-Length' => strlen($admin2Content)], $admin2Content),
+            $transport = MockHttpClient::createTransport([
+                ['content' => $zipContent, 'headers' => ['Content-Length' => [(string) strlen($zipContent)]]],
+                ['content' => $admin1Content, 'headers' => ['Content-Length' => [(string) strlen($admin1Content)]]],
+                ['content' => $admin2Content, 'headers' => ['Content-Length' => [(string) strlen($admin2Content)]]],
             ]);
-            $client = new Client(['handler' => HandlerStack::create($mock)]);
 
-            $downloader = new GazetteerDownloader($client);
+            $downloader = new GazetteerDownloader($transport);
             $converter = new GazetteerConverter;
 
             $command = new DownloadGazetteerCommand($downloader, $converter);

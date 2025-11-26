@@ -14,7 +14,17 @@ A PHP library for downloading and converting Geonames data. This library provide
 - Import data directly to MongoDB with proper indexing
 - Memory-efficient processing for large datasets
 - Progress bars for all operations
-- Support for filtering by feature types (for Gazetteer data)
+
+## How It Works
+
+### Admin Code Resolution
+When downloading gazetteer data, the library automatically downloads `admin1CodesASCII.txt` and `admin2Codes.txt` from GeoNames to resolve administrative division names (e.g., converting admin code "40" to "Bangkok").
+
+### Memory-Efficient Processing
+Data is processed using streaming to handle large datasets without exhausting memory. For MongoDB imports, records are inserted in batches of 1000 for optimal performance.
+
+### Automatic Cleanup
+Temporary files (downloaded ZIP files, extracted data files, and admin code files) are automatically cleaned up after processing completes.
 
 ## Installation
 
@@ -70,21 +80,9 @@ Download geographical data for all countries:
 Options:
 - `--output (-o)`: Output directory (default: ./data)
 - `--format (-f)`: Output format (default: json, options: json, mongodb)
-- `--feature-class (-c)`: Filter by feature class (default: P)
 - `--mongodb-uri`: MongoDB connection URI (default: mongodb://localhost:27017)
 - `--mongodb-db`: MongoDB database name (default: geonames)
 - `--mongodb-collection`: MongoDB collection name (default: gazetteer)
-
-Available feature classes:
-- `A`: Country, state, region
-- `H`: Stream, lake
-- `L`: Parks, area
-- `P`: City, village
-- `R`: Road, railroad
-- `S`: Spot, building, farm
-- `T`: Mountain, hill, rock
-- `U`: Undersea
-- `V`: Forest, heath
 
 The Gazetteer data includes:
 - Geoname ID
@@ -184,16 +182,14 @@ The MongoDB collection is indexed for efficient queries:
 
 #### MongoDB Format
 
-In MongoDB, the gazetteer data has the same structure as JSON but includes an additional `location` field for geospatial queries:
+In MongoDB, the gazetteer data uses slightly different field names and includes a `location` field for geospatial queries:
 
 ```json
 {
-    "geoname_id": 1609350,
+    "geonameid": 1609350,
     "name": "Bangkok",
-    "ascii_name": "Bangkok",
-    "alternate_names": ["Krung Thep", "กรุงเทพมหานคร"],
-    "latitude": 13.75,
-    "longitude": 100.51667,
+    "asciiname": "Bangkok",
+    "alternatenames": ["Krung Thep", "กรุงเทพมหานคร"],
     "location": {
         "type": "Point",
         "coordinates": [100.51667, 13.75]
@@ -217,11 +213,6 @@ In MongoDB, the gazetteer data has the same structure as JSON but includes an ad
 ```
 
 The MongoDB collection is indexed for efficient queries:
-- Unique index on `geoname_id`
-- Index on `country_code`
-- Index on `feature_class`
-- Index on `feature_code`
-- Text index on `name` and `ascii_name`
 - Geospatial index on `location`
 
 ## MongoDB Usage Examples
@@ -266,6 +257,26 @@ foreach ($result as $postalCode) {
     echo $postalCode['postal_code'] . ' - ' . $postalCode['place_name'] . PHP_EOL;
 }
 ```
+
+## Error Handling
+
+The library throws `Farzai\Geonames\Exceptions\GeonamesException` for all error conditions:
+
+```php
+use Farzai\Geonames\Exceptions\GeonamesException;
+
+try {
+    // Download or convert operations
+} catch (GeonamesException $e) {
+    echo "Error: " . $e->getMessage();
+}
+```
+
+Common error scenarios:
+- **File operation failures**: Unable to read, write, or open files
+- **ZIP extraction failures**: Corrupted or invalid ZIP archives
+- **Data not found**: Missing expected data files in downloaded archives
+- **Missing dependencies**: MongoDB extension not installed when using MongoDB format
 
 ## License
 

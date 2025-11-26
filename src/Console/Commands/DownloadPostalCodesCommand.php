@@ -7,6 +7,7 @@ namespace Farzai\Geonames\Console\Commands;
 use Farzai\Geonames\Converter\MongoDBPostalCodeConverter;
 use Farzai\Geonames\Converter\PostalCodeConverter;
 use Farzai\Geonames\Downloader\GeonamesDownloader;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,22 +25,12 @@ use Symfony\Component\Console\Output\OutputInterface;
  *   geonames:download all             # Download all countries
  *   geonames:download US -f mongodb   # Import US data to MongoDB
  */
+#[AsCommand(
+    name: 'geonames:download',
+    description: 'Download and convert postal codes data from Geonames'
+)]
 class DownloadPostalCodesCommand extends Command
 {
-    /**
-     * The default command name.
-     *
-     * @var string
-     */
-    protected static $defaultName = 'geonames:download';
-
-    /**
-     * The default command description.
-     *
-     * @var string
-     */
-    protected static $defaultDescription = 'Download and convert postal codes data from Geonames';
-
     /**
      * The postal code downloader instance.
      */

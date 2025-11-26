@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Farzai\Geonames\Downloader;
 
 use Farzai\Geonames\Exceptions\GeonamesException;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Farzai\Transport\Transport;
+use Farzai\Transport\TransportBuilder;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -24,9 +24,9 @@ abstract class AbstractDownloader
     protected const CHUNK_SIZE = 8192;
 
     /**
-     * The Guzzle HTTP client instance.
+     * The HTTP transport instance.
      */
-    protected Client $client;
+    protected Transport $transport;
 
     /**
      * The console output interface for displaying progress.
@@ -34,22 +34,13 @@ abstract class AbstractDownloader
     protected ?OutputInterface $output = null;
 
     /**
-     * Whether to verify SSL certificates.
-     */
-    protected bool $verifySsl;
-
-    /**
      * Create a new downloader instance.
      *
-     * @param  Client|null  $client  Optional pre-configured Guzzle client
-     * @param  bool  $verifySsl  Whether to verify SSL certificates (default: true)
+     * @param  Transport|null  $transport  Optional pre-configured transport client
      */
-    public function __construct(?Client $client = null, bool $verifySsl = true)
+    public function __construct(?Transport $transport = null)
     {
-        $this->verifySsl = $verifySsl;
-        $this->client = $client ?? new Client([
-            'verify' => $this->verifySsl,
-        ]);
+        $this->transport = $transport ?? TransportBuilder::make()->build();
     }
 
     /**
@@ -76,10 +67,8 @@ abstract class AbstractDownloader
     protected function downloadWithProgress(string $url, string $destination): void
     {
         try {
-            $response = $this->client->get($url, [
-                'stream' => true,
-            ]);
-        } catch (GuzzleException $e) {
+            $response = $this->transport->get($url)->send();
+        } catch (\Throwable $e) {
             throw new GeonamesException(
                 sprintf('Failed to download from %s: %s', $url, $e->getMessage()),
                 0,
