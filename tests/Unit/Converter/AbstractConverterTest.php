@@ -284,14 +284,14 @@ describe('AbstractConverter', function () {
             expect($result)->toBeInstanceOf(ProgressBar::class);
         });
 
-        it('returns ProgressBar even when total lines is zero', function () {
+        it('returns null when total lines is zero', function () {
             $converter = new TestableConverter;
             $converter->setOutput(new BufferedOutput);
 
             $result = $converter->testCreateProgressBar(0);
 
-            // Converter's createProgressBar doesn't check for zero
-            expect($result)->toBeInstanceOf(ProgressBar::class);
+            // ProgressBar with zero max can cause issues in older Symfony versions
+            expect($result)->toBeNull();
         });
     });
 });
