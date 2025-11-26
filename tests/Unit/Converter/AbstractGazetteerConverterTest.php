@@ -164,5 +164,106 @@ describe('AbstractGazetteerConverter', function () {
 
             expect($result['alternate_names'])->toBeArray()->toBeEmpty();
         });
+
+        it('handles Unicode names correctly', function () {
+            $converter = new TestableGazetteerConverter;
+
+            $line = "1609350\tกรุงเทพ\tBangkok\tКрунг Тхеп,曼谷\t13.75\t100.51667\tP\tPPLC\tTH\t\t40\t01\t\t\t5104476\t2\t4\tAsia/Bangkok\t2023-01-12";
+            $result = $converter->testParseGazetteerLine($line);
+
+            expect($result['name'])->toBe('กรุงเทพ');
+            expect($result['alternate_names'])->toContain('Крунг Тхеп');
+            expect($result['alternate_names'])->toContain('曼谷');
+        });
+
+        it('handles empty cc2 field', function () {
+            $converter = new TestableGazetteerConverter;
+
+            $line = "1609350\tBangkok\tBangkok\tKrung Thep\t13.75\t100.51667\tP\tPPLC\tTH\t\t40\t01\t\t\t5104476\t2\t4\tAsia/Bangkok\t2023-01-12";
+            $result = $converter->testParseGazetteerLine($line);
+
+            expect($result['cc2'])->toBeArray()->toBeEmpty();
+        });
+
+        it('handles cc2 with multiple country codes', function () {
+            $converter = new TestableGazetteerConverter;
+
+            $line = "1609350\tBangkok\tBangkok\tKrung Thep\t13.75\t100.51667\tP\tPPLC\tTH\tUS,UK,FR\t40\t01\t\t\t5104476\t2\t4\tAsia/Bangkok\t2023-01-12";
+            $result = $converter->testParseGazetteerLine($line);
+
+            expect($result['cc2'])->toBeArray()->toHaveCount(3);
+            expect($result['cc2'])->toContain('US');
+            expect($result['cc2'])->toContain('UK');
+            expect($result['cc2'])->toContain('FR');
+        });
+
+        it('handles population as integer', function () {
+            $converter = new TestableGazetteerConverter;
+
+            $line = "1609350\tBangkok\tBangkok\tKrung Thep\t13.75\t100.51667\tP\tPPLC\tTH\t\t40\t01\t\t\t5104476\t2\t4\tAsia/Bangkok\t2023-01-12";
+            $result = $converter->testParseGazetteerLine($line);
+
+            expect($result['population'])->toBe(5104476);
+            expect($result['population'])->toBeInt();
+        });
+
+        it('handles null elevation', function () {
+            $converter = new TestableGazetteerConverter;
+
+            $line = "1609350\tBangkok\tBangkok\tKrung Thep\t13.75\t100.51667\tP\tPPLC\tTH\t\t40\t01\t\t\t5104476\t\t4\tAsia/Bangkok\t2023-01-12";
+            $result = $converter->testParseGazetteerLine($line);
+
+            expect($result['elevation'])->toBeNull();
+        });
+    });
+
+    describe('loadAdminCodes edge cases', function () {
+        it('handles malformed admin1 lines gracefully', function () {
+            // Line without proper tab separators
+            file_put_contents($this->getTestDataPath('admin1CodesASCII.txt'), "malformed line without tab\nTH.40\tBangkok\n");
+            file_put_contents($this->getTestDataPath('admin2Codes.txt'), '');
+
+            $converter = new TestableGazetteerConverter;
+            $converter->testLoadAdminCodes($this->getTestDataPath());
+
+            // Should not throw, valid lines should still be loaded
+            expect($converter->testGetAdmin1Name('TH', '40'))->toBe('Bangkok');
+        });
+
+        it('handles empty admin code files', function () {
+            file_put_contents($this->getTestDataPath('admin1CodesASCII.txt'), '');
+            file_put_contents($this->getTestDataPath('admin2Codes.txt'), '');
+
+            $converter = new TestableGazetteerConverter;
+            $converter->testLoadAdminCodes($this->getTestDataPath());
+
+            expect($converter->testGetAdmin1Name('TH', '40'))->toBe('');
+        });
+    });
+
+    describe('getAdmin1Name edge cases', function () {
+        it('is case-sensitive for country code', function () {
+            copy(__DIR__.'/../../stubs/admin1CodesASCII.txt', $this->getTestDataPath('admin1CodesASCII.txt'));
+            file_put_contents($this->getTestDataPath('admin2Codes.txt'), '');
+
+            $converter = new TestableGazetteerConverter;
+            $converter->testLoadAdminCodes($this->getTestDataPath());
+
+            // Lowercase should not match if file has uppercase
+            expect($converter->testGetAdmin1Name('th', '40'))->toBe('');
+        });
+    });
+
+    describe('getAdmin2Name edge cases', function () {
+        it('returns empty string for partial match', function () {
+            copy(__DIR__.'/../../stubs/admin2Codes.txt', $this->getTestDataPath('admin2Codes.txt'));
+            file_put_contents($this->getTestDataPath('admin1CodesASCII.txt'), '');
+
+            $converter = new TestableGazetteerConverter;
+            $converter->testLoadAdminCodes($this->getTestDataPath());
+
+            // Wrong admin1 code should not match
+            expect($converter->testGetAdmin2Name('TH', '99', '01'))->toBe('');
+        });
     });
 });

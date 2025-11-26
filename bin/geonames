@@ -5,11 +5,14 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Symfony\Component\Console\Application;
-use Farzai\Geonames\Console\Commands\DownloadPostalCodesCommand;
+use Composer\InstalledVersions;
 use Farzai\Geonames\Console\Commands\DownloadGazetteerCommand;
+use Farzai\Geonames\Console\Commands\DownloadPostalCodesCommand;
+use Symfony\Component\Console\Application;
 
-$application = new Application('Geonames CLI', '1.0.0');
+$version = InstalledVersions::getPrettyVersion('farzai/geonames') ?? '1.0.0';
+
+$application = new Application('Geonames CLI', $version);
 $application->add(new DownloadPostalCodesCommand());
 $application->add(new DownloadGazetteerCommand());
-$application->run(); 
+$application->run();

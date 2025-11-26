@@ -33,23 +33,45 @@ class PostalCodeConverter extends AbstractConverter
         }
 
         try {
-            fwrite($handle, "[\n");
+            $this->writeToHandle($handle, "[\n", $outputFile);
             $first = true;
 
             foreach ($this->streamPostalCodeRecords($txtFile) as $record) {
                 if (! $first) {
-                    fwrite($handle, ",\n");
+                    $this->writeToHandle($handle, ",\n", $outputFile);
                 }
-                fwrite($handle, json_encode($record, JSON_UNESCAPED_UNICODE));
+
+                $json = json_encode($record, JSON_UNESCAPED_UNICODE);
+                if ($json === false) {
+                    throw GeonamesException::fileOperationFailed('encode JSON', $outputFile);
+                }
+
+                $this->writeToHandle($handle, $json, $outputFile);
                 $first = false;
 
                 $progressBar?->advance();
             }
 
-            fwrite($handle, "\n]");
+            $this->writeToHandle($handle, "\n]", $outputFile);
         } finally {
             fclose($handle);
             $this->finishProgressBar($progressBar);
+        }
+    }
+
+    /**
+     * Write content to a file handle with error checking.
+     *
+     * @param  resource  $handle  The file handle to write to
+     * @param  string  $content  The content to write
+     * @param  string  $outputFile  The output file path (for error messages)
+     *
+     * @throws GeonamesException When the write operation fails
+     */
+    private function writeToHandle($handle, string $content, string $outputFile): void
+    {
+        if (fwrite($handle, $content) === false) {
+            throw GeonamesException::fileOperationFailed('write', $outputFile);
         }
     }
 }

@@ -7,6 +7,7 @@ namespace Farzai\Geonames\Console\Commands;
 use Farzai\Geonames\Converter\GazetteerConverter;
 use Farzai\Geonames\Converter\MongoDBGazetteerConverter;
 use Farzai\Geonames\Downloader\GazetteerDownloader;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -35,6 +36,10 @@ use Symfony\Component\Console\Output\OutputInterface;
  *   geonames:gazetteer:download all -c P            # All populated places
  *   geonames:gazetteer:download US -f mongodb       # Import US data to MongoDB
  */
+#[AsCommand(
+    name: 'geonames:gazetteer:download',
+    description: 'Download and convert Geonames Gazetteer data'
+)]
 class DownloadGazetteerCommand extends Command
 {
     /**
@@ -44,20 +49,6 @@ class DownloadGazetteerCommand extends Command
         'admin1CodesASCII.txt',
         'admin2Codes.txt',
     ];
-
-    /**
-     * The default command name.
-     *
-     * @var string
-     */
-    protected static $defaultName = 'geonames:gazetteer:download';
-
-    /**
-     * The default command description.
-     *
-     * @var string
-     */
-    protected static $defaultDescription = 'Download and convert Geonames Gazetteer data';
 
     /**
      * The gazetteer downloader instance.
