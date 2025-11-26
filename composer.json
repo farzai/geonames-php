@@ -10,7 +10,7 @@
         "guzzlehttp/guzzle": "^7.0"
     },
     "require-dev": {
-        "pestphp/pest": "^2.8",
+        "pestphp/pest": "^2.34",
         "spatie/ray": "^1.28",
         "laravel/pint": "^1.2",
         "phpstan/extension-installer": "^1.1",
