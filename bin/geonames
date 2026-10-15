@@ -3,12 +3,30 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/../vendor/autoload.php';
-
 use Composer\InstalledVersions;
 use Farzai\Geonames\Console\Commands\DownloadGazetteerCommand;
 use Farzai\Geonames\Console\Commands\DownloadPostalCodesCommand;
 use Symfony\Component\Console\Application;
+
+// From a clone, the autoloader is the package's own vendor directory; once
+// installed as a dependency, the script sits in vendor/farzai/geonames/bin
+// and the project's autoloader is three levels up (#35).
+$autoloaders = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+foreach ($autoloaders as $autoloader) {
+    if (is_file($autoloader)) {
+        require $autoloader;
+        break;
+    }
+}
+
+if (! class_exists(Application::class)) {
+    fwrite(STDERR, "geonames: could not find Composer's autoloader; run composer install.\n");
+    exit(1);
+}
 
 $version = InstalledVersions::getPrettyVersion('farzai/geonames') ?? '1.0.0';
 
