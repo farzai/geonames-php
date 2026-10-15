@@ -32,6 +32,8 @@ Temporary files (downloaded ZIP files, extracted data files, and admin code file
 composer require farzai/geonames
 ```
 
+The package brings its own HTTP client (`symfony/http-client`) and needs the `zip` PHP extension. The CLI is installed as `vendor/bin/geonames`; from a clone of this repository, run `./bin/geonames` instead.
+
 ## Usage
 
 ### Postal Codes
@@ -39,13 +41,13 @@ composer require farzai/geonames
 Download postal codes for a specific country:
 
 ```bash
-./bin/geonames geonames:download TH
+vendor/bin/geonames geonames:download TH
 ```
 
 Download postal codes for all countries:
 
 ```bash
-./bin/geonames geonames:download all
+vendor/bin/geonames geonames:download all
 ```
 
 Options:
@@ -68,13 +70,13 @@ The postal codes data includes:
 Download geographical data for a specific country:
 
 ```bash
-./bin/geonames geonames:gazetteer:download TH
+vendor/bin/geonames geonames:gazetteer:download TH
 ```
 
 Download geographical data for all countries:
 
 ```bash
-./bin/geonames geonames:gazetteer:download all
+vendor/bin/geonames geonames:gazetteer:download all
 ```
 
 Options:
