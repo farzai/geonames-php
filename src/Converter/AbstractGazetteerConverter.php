@@ -194,8 +194,10 @@ abstract class AbstractGazetteerConverter extends AbstractConverter
             'admin3_code' => $fields[12],
             'admin4_code' => $fields[13],
             'population' => (int) ($fields[14] ?? 0),
-            'elevation' => ! empty($fields[15]) ? (int) $fields[15] : null,
-            'dem' => ! empty($fields[16]) ? (int) $fields[16] : null,
+            // Compared with '' rather than empty(): empty('0') is true, and 0
+            // is a real elevation (sea level), not a missing one (#39).
+            'elevation' => $fields[15] !== '' ? (int) $fields[15] : null,
+            'dem' => $fields[16] !== '' ? (int) $fields[16] : null,
             'timezone' => $fields[17],
             'modification_date' => $fields[18],
         ];
