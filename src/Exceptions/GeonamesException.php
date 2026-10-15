@@ -53,9 +53,10 @@ class GeonamesException extends RuntimeException
     /**
      * A readable description of a ZipArchive::open() error code.
      */
-    public static function describeZipError(int $code): string
+    public static function describeZipError(int|false $code): string
     {
         return match ($code) {
+            false => 'the archive could not be opened',
             \ZipArchive::ER_NOZIP => 'not a ZIP archive',
             \ZipArchive::ER_INCONS => 'the archive is inconsistent or damaged',
             \ZipArchive::ER_CRC => 'a checksum does not match; the archive is damaged',

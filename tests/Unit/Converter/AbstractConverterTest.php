@@ -202,6 +202,24 @@ describe('AbstractConverter', function () {
     });
 
     describe('cleanupTempDirectory', function () {
+        // Review of #50: a subdirectory made unlink warn and rmdir fail, which
+        // left the extracted files in the 0700 temp directory.
+        it('removes nested directories, and a link as a link', function () {
+            $tempDir = $this->getTestDataPath('cleanup_nested');
+            mkdir($tempDir.'/a/b', 0777, true);
+            file_put_contents($tempDir.'/a/b/deep.txt', 'x');
+            file_put_contents($tempDir.'/top.txt', 'x');
+            $outside = $this->getTestDataPath('outside');
+            mkdir($outside);
+            file_put_contents($outside.'/keep.txt', 'keep');
+            symlink($outside, $tempDir.'/link');
+
+            (new TestableConverter)->testCleanupTempDirectory($tempDir);
+
+            expect(file_exists($tempDir))->toBeFalse();
+            expect(file_get_contents($outside.'/keep.txt'))->toBe('keep');
+        });
+
         it('removes directory and contents', function () {
             $tempDir = $this->getTestDataPath('cleanup_test');
             mkdir($tempDir);

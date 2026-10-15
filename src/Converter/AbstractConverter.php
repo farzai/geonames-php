@@ -108,7 +108,7 @@ abstract class AbstractConverter implements ConverterInterface
 
             if (! $zip->extractTo($tempDir)) {
                 $this->cleanupTempDirectory($tempDir);
-                throw GeonamesException::zipOperationFailed($zipFile, 'extraction failed');
+                throw GeonamesException::zipOperationFailed($zipFile, 'could not extract the archive');
             }
         } finally {
             $zip->close();
@@ -153,14 +153,20 @@ abstract class AbstractConverter implements ConverterInterface
      */
     protected function cleanupTempDirectory(string $tempDir): void
     {
-        if (! is_dir($tempDir)) {
+        if (is_link($tempDir) || ! is_dir($tempDir)) {
             return;
         }
 
-        $files = new DirectoryIterator($tempDir);
-        foreach ($files as $file) {
-            if (! $file->isDot()) {
-                unlink($file->getPathname());
+        $entries = new DirectoryIterator($tempDir);
+        foreach ($entries as $entry) {
+            if ($entry->isDot()) {
+                continue;
+            }
+            // A link is removed as a link, never followed into its target.
+            if ($entry->isDir() && ! $entry->isLink()) {
+                $this->cleanupTempDirectory($entry->getPathname());
+            } else {
+                unlink($entry->getPathname());
             }
         }
         rmdir($tempDir);
