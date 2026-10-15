@@ -169,6 +169,78 @@ describe('AbstractDownloader', function () {
         });
     });
 
+    // #37: a failed or cut-short download must not leave a file that looks
+    // like the data.
+    describe('download integrity', function () {
+        it('rejects a non-200 response and saves nothing', function () {
+            $transport = MockHttpClient::createTransport([
+                ['content' => '<html>404 Not Found</html>', 'status' => 404],
+            ]);
+            $destination = $this->getTestDataPath('XX.zip');
+
+            expect(fn () => (new TestableAbstractDownloader($transport))
+                ->testDownloadWithProgress('https://test.example.com/XX.zip', $destination))
+                ->toThrow(GeonamesException::class, 'HTTP 404');
+
+            expect(file_exists($destination))->toBeFalse();
+            expect(file_exists($destination.'.part'))->toBeFalse();
+        });
+
+        it('rejects a body shorter than Content-Length and saves nothing', function () {
+            $transport = MockHttpClient::createTransport([
+                ['content' => str_repeat('x', 50), 'headers' => ['Content-Length' => ['100']]],
+            ]);
+            $destination = $this->getTestDataPath('short.txt');
+
+            expect(fn () => (new TestableAbstractDownloader($transport))
+                ->testDownloadWithProgress('https://test.example.com/short.txt', $destination))
+                ->toThrow(GeonamesException::class, '50 of 100 bytes');
+
+            expect(file_exists($destination))->toBeFalse();
+            expect(file_exists($destination.'.part'))->toBeFalse();
+        });
+
+        it('rejects a .zip that is not a readable archive and saves nothing', function () {
+            $transport = MockHttpClient::createTransport([
+                ['content' => 'not a zip at all'],
+            ]);
+            $destination = $this->getTestDataPath('TH.zip');
+
+            expect(fn () => (new TestableAbstractDownloader($transport))
+                ->testDownloadWithProgress('https://test.example.com/TH.zip', $destination))
+                ->toThrow(GeonamesException::class);
+
+            expect(file_exists($destination))->toBeFalse();
+            expect(file_exists($destination.'.part'))->toBeFalse();
+        });
+
+        it('saves a complete zip under its final name only', function () {
+            $zip = file_get_contents(__DIR__.'/../../stubs/TH.zip');
+            $transport = MockHttpClient::createTransport([['content' => $zip]]);
+            $destination = $this->getTestDataPath('TH.zip');
+
+            (new TestableAbstractDownloader($transport))
+                ->testDownloadWithProgress('https://test.example.com/TH.zip', $destination);
+
+            expect(file_get_contents($destination))->toBe($zip);
+            expect(file_exists($destination.'.part'))->toBeFalse();
+        });
+
+        it('leaves an earlier good file in place when a download fails', function () {
+            $destination = $this->getTestDataPath('TH.zip');
+            file_put_contents($destination, 'earlier download');
+            $transport = MockHttpClient::createTransport([
+                ['content' => 'gateway timeout', 'status' => 504],
+            ]);
+
+            expect(fn () => (new TestableAbstractDownloader($transport))
+                ->testDownloadWithProgress('https://test.example.com/TH.zip', $destination))
+                ->toThrow(GeonamesException::class);
+
+            expect(file_get_contents($destination))->toBe('earlier download');
+        });
+    });
+
     describe('createProgressBar', function () {
         it('returns null when no output set', function () {
             $transport = MockHttpClient::createTransport([]);

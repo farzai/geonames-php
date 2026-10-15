@@ -59,6 +59,13 @@ abstract class AbstractDownloader
     /**
      * Download a file from a URL with progress tracking.
      *
+     * The body is written to "<destination>.part" and renamed to the
+     * destination only once it is known to be whole: a 200 response, as many
+     * bytes as Content-Length announced, and, for a .zip, an archive that
+     * opens. On any failure the partial file is removed and an earlier file
+     * at the destination is left as it was, so a missing country, an outage
+     * or a dropped connection never leaves a file that looks like the data.
+     *
      * @param  string  $url  The URL to download from
      * @param  string  $destination  The local file path to save to
      *
@@ -76,35 +83,106 @@ abstract class AbstractDownloader
             );
         }
 
+        $status = $response->getStatusCode();
+        if ($status !== 200) {
+            throw new GeonamesException(sprintf('Failed to download from %s: HTTP %d', $url, $status));
+        }
+
         $contentLengthHeader = $response->getHeader('Content-Length');
         $totalSize = ! empty($contentLengthHeader) ? (int) $contentLengthHeader[0] : 0;
         $body = $response->getBody();
 
-        $progressBar = $this->createProgressBar($totalSize);
-
-        $handle = fopen($destination, 'wb');
+        $partial = $destination.'.part';
+        $handle = fopen($partial, 'wb');
         if ($handle === false) {
-            throw GeonamesException::fileOperationFailed('open for writing', $destination);
+            throw GeonamesException::fileOperationFailed('open for writing', $partial);
         }
+
+        $progressBar = $this->createProgressBar($totalSize);
 
         try {
             $downloaded = 0;
 
-            while (! $body->eof()) {
-                $chunk = $body->read(self::CHUNK_SIZE);
-                $bytesWritten = fwrite($handle, $chunk);
+            try {
+                while (! $body->eof()) {
+                    $chunk = $body->read(self::CHUNK_SIZE);
+                    $bytesWritten = fwrite($handle, $chunk);
 
-                if ($bytesWritten === false) {
-                    throw GeonamesException::fileOperationFailed('write', $destination);
+                    if ($bytesWritten === false || $bytesWritten !== strlen($chunk)) {
+                        throw GeonamesException::fileOperationFailed('write', $partial);
+                    }
+
+                    $downloaded += $bytesWritten;
+                    $progressBar?->setProgress($downloaded);
                 }
-
-                $downloaded += strlen($chunk);
-                $progressBar?->setProgress($downloaded);
+            } finally {
+                fclose($handle);
+                $this->finishProgressBar($progressBar);
             }
-        } finally {
-            fclose($handle);
-            $this->finishProgressBar($progressBar);
+
+            if ($totalSize > 0 && $downloaded !== $totalSize) {
+                throw new GeonamesException(sprintf(
+                    'Incomplete download from %s: received %d of %d bytes',
+                    $url,
+                    $downloaded,
+                    $totalSize
+                ));
+            }
+
+            if (str_ends_with(strtolower($destination), '.zip')) {
+                $this->assertReadableZip($partial, $url);
+            }
+
+            if (! rename($partial, $destination)) {
+                throw GeonamesException::fileOperationFailed('rename', $partial);
+            }
+        } catch (\Throwable $e) {
+            if (file_exists($partial)) {
+                unlink($partial);
+            }
+
+            throw $e;
         }
+    }
+
+    /**
+     * The ZIP file name for a country, after checking the code is two letters.
+     * The code becomes part of the URL and of the saved path, so anything
+     * else (a path separator, "..") is refused before a request is made.
+     *
+     * @throws GeonamesException When the code is not two letters
+     */
+    protected function countryZipName(string $countryCode): string
+    {
+        if (preg_match('/^[A-Za-z]{2}$/', $countryCode) !== 1) {
+            throw new GeonamesException(sprintf(
+                'Invalid country code "%s": expected an ISO 3166-1 alpha-2 code such as TH',
+                $countryCode
+            ));
+        }
+
+        return strtoupper($countryCode).'.zip';
+    }
+
+    /**
+     * Check that a downloaded file is a ZIP archive that opens and passes a
+     * consistency check, so an error page or a cut-off body served without a
+     * Content-Length is caught before it is saved as the data.
+     *
+     * @throws GeonamesException When the file is not a readable ZIP archive
+     */
+    protected function assertReadableZip(string $path, string $url): void
+    {
+        $zip = new \ZipArchive;
+        $result = $zip->open($path, \ZipArchive::CHECKCONS);
+        if ($result !== true) {
+            throw new GeonamesException(sprintf(
+                'Downloaded file from %s is not a readable ZIP archive (ZipArchive error %d)',
+                $url,
+                $result
+            ));
+        }
+        $zip->close();
     }
 
     /**

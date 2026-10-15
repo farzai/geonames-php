@@ -41,7 +41,7 @@ class GazetteerDownloader extends AbstractDownloader
      */
     public function download(string $countryCode, string $destination): void
     {
-        $filename = strtoupper($countryCode).'.zip';
+        $filename = $this->countryZipName($countryCode);
         $url = $this->getBaseUrl().$filename;
 
         $this->downloadWithProgress($url, $destination.'/'.$filename);
