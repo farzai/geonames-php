@@ -1,6 +1,7 @@
 <?php
 
 use Farzai\Geonames\Downloader\GeonamesDownloader;
+use Farzai\Geonames\Exceptions\GeonamesException;
 use Farzai\Geonames\Tests\Helpers\MockHttpClient;
 use Symfony\Component\Console\Output\BufferedOutput;
 
@@ -12,6 +13,15 @@ describe('GeonamesDownloader', function () {
     });
 
     describe('download', function () {
+        // #37: the code becomes part of the URL and the saved file name, so
+        // anything but two letters is refused before a request is made.
+        it('refuses a country code that is not two letters', function (string $code) {
+            $transport = MockHttpClient::createTransport([]);
+
+            expect(fn () => (new GeonamesDownloader($transport))->download($code, $this->getTestDataPath()))
+                ->toThrow(GeonamesException::class, 'Invalid country code');
+        })->with(['../TH', 'TH/x', 'T', 'THA', '', 'T1']);
+
         it('downloads country zip file', function () {
             $zipContent = file_get_contents(__DIR__.'/../../stubs/TH.zip');
 

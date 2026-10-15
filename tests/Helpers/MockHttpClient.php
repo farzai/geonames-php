@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Farzai\Geonames\Tests\Helpers;
 
+use Farzai\Transport\Transport;
+use Farzai\Transport\TransportBuilder;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -41,7 +43,7 @@ class MockHttpClient implements ClientInterface
     /**
      * Create mock responses from content.
      *
-     * @param  array<array{content: string, headers?: array<string, array<string>>}>  $responseData
+     * @param  array<array{content: string, headers?: array<string, array<string>>, status?: int}>  $responseData
      */
     public static function withResponses(array $responseData): self
     {
@@ -49,7 +51,7 @@ class MockHttpClient implements ClientInterface
         foreach ($responseData as $data) {
             $content = $data['content'];
             $headers = $data['headers'] ?? ['Content-Length' => [strlen($content)]];
-            $responses[] = new MockResponse($content, $headers);
+            $responses[] = new MockResponse($content, $headers, $data['status'] ?? 200);
         }
 
         return new self($responses);
@@ -58,13 +60,13 @@ class MockHttpClient implements ClientInterface
     /**
      * Create a Transport instance with mock responses for testing.
      *
-     * @param  array<array{content: string, headers?: array<string, array<string>>}>  $responses
+     * @param  array<array{content: string, headers?: array<string, array<string>>, status?: int}>  $responses
      */
-    public static function createTransport(array $responses): \Farzai\Transport\Transport
+    public static function createTransport(array $responses): Transport
     {
         $mockClient = self::withResponses($responses);
 
-        return \Farzai\Transport\TransportBuilder::make()
+        return TransportBuilder::make()
             ->setClient($mockClient)
             ->build();
     }
@@ -84,19 +86,22 @@ class MockResponse implements ResponseInterface
 
     private MockStream $stream;
 
+    private int $status;
+
     /**
      * @param  array<string, array<string>>  $headers
      */
-    public function __construct(string $body, array $headers = [])
+    public function __construct(string $body, array $headers = [], int $status = 200)
     {
         $this->body = $body;
         $this->headers = $headers;
         $this->stream = new MockStream($body);
+        $this->status = $status;
     }
 
     public function getStatusCode(): int
     {
-        return 200;
+        return $this->status;
     }
 
     public function withStatus(int $code, string $reasonPhrase = ''): ResponseInterface
