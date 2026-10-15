@@ -6,6 +6,7 @@ namespace Farzai\Geonames\Converter;
 
 use Farzai\Geonames\Exceptions\GeonamesException;
 use MongoDB\Client;
+use MongoDB\Collection;
 
 /**
  * Converts GeoNames postal code data from ZIP files directly to MongoDB.
@@ -156,9 +157,9 @@ class MongoDBPostalCodeConverter extends AbstractConverter
     /**
      * Create indexes on the MongoDB collection for optimal query performance.
      *
-     * @param  \MongoDB\Collection  $collection  The MongoDB collection
+     * @param  Collection  $collection  The MongoDB collection
      */
-    private function createIndexes(\MongoDB\Collection $collection): void
+    private function createIndexes(Collection $collection): void
     {
         $collection->createIndex(['country_code' => 1]);
         $collection->createIndex(['postal_code' => 1]);

@@ -15,9 +15,9 @@ class TestableGazetteerJsonConverter extends GazetteerConverter
     }
 
     /**
-     * @return \Generator<int, array<string, mixed>>
+     * @return Generator<int, array<string, mixed>>
      */
-    public function testStreamGazetteerRecords(string $txtFile): \Generator
+    public function testStreamGazetteerRecords(string $txtFile): Generator
     {
         return $this->streamGazetteerRecords($txtFile);
     }
