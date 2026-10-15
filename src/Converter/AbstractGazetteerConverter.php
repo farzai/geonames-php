@@ -186,7 +186,7 @@ abstract class AbstractGazetteerConverter extends AbstractConverter
             'feature_class' => $fields[6],
             'feature_code' => $fields[7],
             'country_code' => $countryCode,
-            'cc2' => array_filter(explode(',', $fields[9] ?? '')),
+            'cc2' => array_filter(explode(',', $fields[9])),
             'admin1_code' => $admin1Code,
             'admin1_name' => $this->getAdmin1Name($countryCode, $admin1Code),
             'admin2_code' => $admin2Code,
