@@ -90,21 +90,41 @@ abstract class AbstractConverter implements ConverterInterface
     {
         $zip = new ZipArchive;
 
-        if ($zip->open($zipFile) !== true) {
-            throw GeonamesException::zipOperationFailed($zipFile);
+        $opened = $zip->open($zipFile);
+        if ($opened !== true) {
+            throw GeonamesException::zipOperationFailed($zipFile, GeonamesException::describeZipError($opened));
         }
 
-        $tempDir = sys_get_temp_dir().'/geonames_'.uniqid();
+        try {
+            // Never accept a path that already exists: not a directory, and not
+            // a symlink, which mkdir() would otherwise let extractTo write
+            // through (#49). The check gives a clean error; mkdir() with 0700
+            // is the authority, so a path planted between the two still fails,
+            // and a directory it does create only this user can enter.
+            $tempDir = $this->newTempDirectoryPath();
+            if (file_exists($tempDir) || is_link($tempDir) || ! @mkdir($tempDir, 0700)) {
+                throw GeonamesException::fileOperationFailed('create directory', $tempDir);
+            }
 
-        if (! mkdir($tempDir) && ! is_dir($tempDir)) {
+            if (! $zip->extractTo($tempDir)) {
+                $this->cleanupTempDirectory($tempDir);
+                throw GeonamesException::zipOperationFailed($zipFile, 'extraction failed');
+            }
+        } finally {
             $zip->close();
-            throw GeonamesException::fileOperationFailed('create directory', $tempDir);
         }
-
-        $zip->extractTo($tempDir);
-        $zip->close();
 
         return $tempDir;
+    }
+
+    /**
+     * A fresh, unguessable path to extract into: 128 random bits, so another
+     * user cannot create it first. A seam for tests; callers get it from
+     * extractZipFile().
+     */
+    protected function newTempDirectoryPath(): string
+    {
+        return sys_get_temp_dir().'/geonames_'.bin2hex(random_bytes(16));
     }
 
     /**

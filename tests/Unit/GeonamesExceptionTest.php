@@ -45,6 +45,21 @@ describe('GeonamesException', function () {
         });
     });
 
+    describe('describeZipError', function () {
+        it('names the common ZipArchive open errors', function (int $code, string $expected) {
+            expect(GeonamesException::describeZipError($code))->toBe($expected);
+        })->with([
+            [ZipArchive::ER_NOZIP, 'not a ZIP archive'],
+            [ZipArchive::ER_INCONS, 'the archive is inconsistent or damaged'],
+            [ZipArchive::ER_NOENT, 'the file does not exist'],
+            [ZipArchive::ER_READ, 'the file cannot be read'],
+        ]);
+
+        it('falls back to the code for one it does not know', function () {
+            expect(GeonamesException::describeZipError(9999))->toBe('ZipArchive error 9999');
+        });
+    });
+
     describe('dataNotFound', function () {
         it('creates exception with data type and location', function () {
             $exception = GeonamesException::dataNotFound('.txt file', 'ZIP archive');

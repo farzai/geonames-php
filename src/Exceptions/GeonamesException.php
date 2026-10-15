@@ -51,6 +51,24 @@ class GeonamesException extends RuntimeException
     }
 
     /**
+     * A readable description of a ZipArchive::open() error code.
+     */
+    public static function describeZipError(int $code): string
+    {
+        return match ($code) {
+            \ZipArchive::ER_NOZIP => 'not a ZIP archive',
+            \ZipArchive::ER_INCONS => 'the archive is inconsistent or damaged',
+            \ZipArchive::ER_CRC => 'a checksum does not match; the archive is damaged',
+            \ZipArchive::ER_MEMORY => 'out of memory',
+            \ZipArchive::ER_NOENT => 'the file does not exist',
+            \ZipArchive::ER_OPEN => 'the file cannot be opened',
+            \ZipArchive::ER_READ => 'the file cannot be read',
+            \ZipArchive::ER_SEEK => 'a seek in the file failed',
+            default => 'ZipArchive error '.$code,
+        };
+    }
+
+    /**
      * Create a new exception when required data is not found.
      *
      * @param  string  $dataType  The type of data not found (e.g., 'txt file', 'admin codes')

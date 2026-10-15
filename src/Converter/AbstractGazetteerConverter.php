@@ -197,7 +197,8 @@ abstract class AbstractGazetteerConverter extends AbstractConverter
             // Compared with '' rather than empty(): empty('0') is true, and 0
             // is a real elevation (sea level), not a missing one (#39).
             'elevation' => $fields[15] !== '' ? (int) $fields[15] : null,
-            'dem' => $fields[16] !== '' ? (int) $fields[16] : null,
+            // GeoNames writes -9999 where its elevation model has no data.
+            'dem' => $fields[16] !== '' && $fields[16] !== '-9999' ? (int) $fields[16] : null,
             'timezone' => $fields[17],
             'modification_date' => $fields[18],
         ];

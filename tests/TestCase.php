@@ -47,7 +47,8 @@ abstract class TestCase extends BaseTestCase
                 continue;
             }
 
-            if ($file->isDir()) {
+            // A symlink is removed as a link, never followed into its target.
+            if ($file->isDir() && ! $file->isLink()) {
                 $this->cleanupDirectory($file->getPathname());
                 rmdir($file->getPathname());
             } else {
