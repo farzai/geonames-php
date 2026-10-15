@@ -244,6 +244,20 @@ describe('AbstractDownloader', function () {
             expect(is_link($destination))->toBeFalse();
         });
 
+        // Review of #46: a decoded body is longer than the encoded length the
+        // header counted, which is not a short download.
+        it('skips the length check for a Content-Encoding body', function () {
+            $transport = MockHttpClient::createTransport([
+                ['content' => str_repeat('x', 200), 'headers' => ['Content-Length' => ['50'], 'Content-Encoding' => ['gzip']]],
+            ]);
+            $destination = $this->getTestDataPath('decoded.txt');
+
+            (new TestableAbstractDownloader($transport))
+                ->testDownloadWithProgress('https://test.example.com/decoded.txt', $destination);
+
+            expect(strlen(file_get_contents($destination)))->toBe(200);
+        });
+
         it('leaves an earlier good file in place when a download fails', function () {
             $destination = $this->getTestDataPath('TH.zip');
             file_put_contents($destination, 'earlier download');

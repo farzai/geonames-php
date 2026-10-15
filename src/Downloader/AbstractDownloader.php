@@ -93,6 +93,11 @@ abstract class AbstractDownloader
 
         $contentLengthHeader = $response->getHeader('Content-Length');
         $totalSize = ! empty($contentLengthHeader) ? (int) $contentLengthHeader[0] : 0;
+        // A client that decodes Content-Encoding hands back more bytes than
+        // the header counted, so the length check only holds for an
+        // unencoded body; the zip check still covers an encoded one.
+        $encoded = $response->getHeaderLine('Content-Encoding') !== ''
+            && strtolower($response->getHeaderLine('Content-Encoding')) !== 'identity';
         $body = $response->getBody();
 
         $directory = dirname($destination);
@@ -136,7 +141,7 @@ abstract class AbstractDownloader
                 $this->finishProgressBar($progressBar);
             }
 
-            if ($totalSize > 0 && $downloaded !== $totalSize) {
+            if ($totalSize > 0 && ! $encoded && $downloaded !== $totalSize) {
                 throw new GeonamesException(sprintf(
                     'Incomplete download from %s: received %d of %d bytes',
                     $url,
