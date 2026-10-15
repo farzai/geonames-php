@@ -215,6 +215,27 @@ describe('AbstractGazetteerConverter', function () {
 
             expect($result['elevation'])->toBeNull();
         });
+
+        // #39: empty('0') is true in PHP, so sea-level places lost their 0.
+        it('keeps an elevation and dem of 0', function () {
+            $converter = new TestableGazetteerConverter;
+
+            $line = "1115093\tKo Kut\tKo Kut\t\t11.65\t102.56\tT\tISL\tTH\t\t23\t\t\t\t0\t0\t0\tAsia/Bangkok\t2023-01-12";
+            $result = $converter->testParseGazetteerLine($line);
+
+            expect($result['elevation'])->toBe(0);
+            expect($result['dem'])->toBe(0);
+        });
+
+        it('keeps a negative elevation and dem', function () {
+            $converter = new TestableGazetteerConverter;
+
+            $line = "1\tLow\tLow\t\t1\t1\tT\tDPR\tTH\t\t23\t\t\t\t0\t-2\t-5\tAsia/Bangkok\t2023-01-12";
+            $result = $converter->testParseGazetteerLine($line);
+
+            expect($result['elevation'])->toBe(-2);
+            expect($result['dem'])->toBe(-5);
+        });
     });
 
     describe('loadAdminCodes edge cases', function () {
