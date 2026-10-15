@@ -23,6 +23,14 @@ class TestableConverter extends AbstractConverter
         $this->processedFiles[] = ['txt' => $txtFile, 'output' => $outputFile];
     }
 
+    /** A fixed path for the extraction, so a test can plant something there. */
+    public ?string $forcedTempPath = null;
+
+    protected function newTempDirectoryPath(): string
+    {
+        return $this->forcedTempPath ?? parent::newTempDirectoryPath();
+    }
+
     // Expose protected methods for testing
     public function testExtractZipFile(string $zipFile): string
     {
@@ -102,12 +110,74 @@ describe('AbstractConverter', function () {
             $converter->testCleanupTempDirectory($tempDir);
         });
 
-        it('throws exception for invalid zip file', function () {
+        // #49: another user on a shared host must not be able to pick where
+        // extractTo writes by creating the directory first.
+        it('never extracts into a symlink planted at the target path', function () {
+            copy(__DIR__.'/../../stubs/TH.zip', $this->getTestDataPath('TH.zip'));
+            $victim = $this->getTestDataPath('victim');
+            mkdir($victim);
+            $planted = $this->getTestDataPath('planted');
+            symlink($victim, $planted);
+
+            $converter = new TestableConverter;
+            $converter->forcedTempPath = $planted;
+
+            expect(fn () => $converter->testExtractZipFile($this->getTestDataPath('TH.zip')))
+                ->toThrow(GeonamesException::class);
+            expect(glob($victim.'/*'))->toBe([]);
+        });
+
+        it('refuses a directory that already exists at the target path', function () {
+            copy(__DIR__.'/../../stubs/TH.zip', $this->getTestDataPath('TH.zip'));
+            $existing = $this->getTestDataPath('existing');
+            mkdir($existing);
+
+            $converter = new TestableConverter;
+            $converter->forcedTempPath = $existing;
+
+            expect(fn () => $converter->testExtractZipFile($this->getTestDataPath('TH.zip')))
+                ->toThrow(GeonamesException::class);
+            expect(glob($existing.'/*'))->toBe([]);
+        });
+
+        it('extracts into a fresh random directory only the owner can enter', function () {
+            copy(__DIR__.'/../../stubs/TH.zip', $this->getTestDataPath('TH.zip'));
+
+            $converter = new TestableConverter;
+            $tempDir = $converter->testExtractZipFile($this->getTestDataPath('TH.zip'));
+
+            try {
+                expect(basename($tempDir))->toMatch('/^geonames_[0-9a-f]{32}$/');
+                expect(is_link($tempDir))->toBeFalse();
+                expect(fileperms($tempDir) & 0777)->toBe(0700);
+            } finally {
+                $converter->testCleanupTempDirectory($tempDir);
+            }
+        });
+
+        it('does not repeat a directory name', function () {
+            copy(__DIR__.'/../../stubs/TH.zip', $this->getTestDataPath('TH.zip'));
+            $converter = new TestableConverter;
+
+            $first = $converter->testExtractZipFile($this->getTestDataPath('TH.zip'));
+            $second = $converter->testExtractZipFile($this->getTestDataPath('TH.zip'));
+
+            try {
+                expect($second)->not->toBe($first);
+            } finally {
+                $converter->testCleanupTempDirectory($first);
+                $converter->testCleanupTempDirectory($second);
+            }
+        });
+
+        it('says why an invalid zip file could not be opened', function () {
             file_put_contents($this->getTestDataPath('invalid.zip'), 'not a zip');
 
             $converter = new TestableConverter;
-            $converter->testExtractZipFile($this->getTestDataPath('invalid.zip'));
-        })->throws(GeonamesException::class);
+
+            expect(fn () => $converter->testExtractZipFile($this->getTestDataPath('invalid.zip')))
+                ->toThrow(GeonamesException::class, 'not a ZIP archive');
+        });
     });
 
     describe('findDataFile', function () {
@@ -132,6 +202,24 @@ describe('AbstractConverter', function () {
     });
 
     describe('cleanupTempDirectory', function () {
+        // Review of #50: a subdirectory made unlink warn and rmdir fail, which
+        // left the extracted files in the 0700 temp directory.
+        it('removes nested directories, and a link as a link', function () {
+            $tempDir = $this->getTestDataPath('cleanup_nested');
+            mkdir($tempDir.'/a/b', 0777, true);
+            file_put_contents($tempDir.'/a/b/deep.txt', 'x');
+            file_put_contents($tempDir.'/top.txt', 'x');
+            $outside = $this->getTestDataPath('outside');
+            mkdir($outside);
+            file_put_contents($outside.'/keep.txt', 'keep');
+            symlink($outside, $tempDir.'/link');
+
+            (new TestableConverter)->testCleanupTempDirectory($tempDir);
+
+            expect(file_exists($tempDir))->toBeFalse();
+            expect(file_get_contents($outside.'/keep.txt'))->toBe('keep');
+        });
+
         it('removes directory and contents', function () {
             $tempDir = $this->getTestDataPath('cleanup_test');
             mkdir($tempDir);

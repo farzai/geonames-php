@@ -227,6 +227,26 @@ describe('AbstractGazetteerConverter', function () {
             expect($result['dem'])->toBe(0);
         });
 
+        // GeoNames writes -9999 into dem where its elevation model has no data
+        // (open water, voids): a missing value, not an elevation (#49).
+        it('maps the SRTM void marker -32768 to null as well', function () {
+            $converter = new TestableGazetteerConverter;
+
+            $line = "3\tVoid\tVoid\t\t1\t1\tH\tSEA\tTH\t\t23\t\t\t\t0\t0\t-32768\tAsia/Bangkok\t2023-01-12";
+
+            expect($converter->testParseGazetteerLine($line)['dem'])->toBeNull();
+        });
+
+        it('maps a dem of -9999 to null and keeps a real elevation beside it', function () {
+            $converter = new TestableGazetteerConverter;
+
+            $line = "2\tSea\tSea\t\t1\t1\tH\tSEA\tTH\t\t23\t\t\t\t0\t12\t-9999\tAsia/Bangkok\t2023-01-12";
+            $result = $converter->testParseGazetteerLine($line);
+
+            expect($result['dem'])->toBeNull();
+            expect($result['elevation'])->toBe(12);
+        });
+
         it('keeps a negative elevation and dem', function () {
             $converter = new TestableGazetteerConverter;
 

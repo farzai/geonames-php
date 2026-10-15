@@ -198,9 +198,9 @@ abstract class AbstractDownloader
         $result = $zip->open($path, \ZipArchive::CHECKCONS);
         if ($result !== true) {
             throw new GeonamesException(sprintf(
-                'Downloaded file from %s is not a readable ZIP archive (ZipArchive error %d)',
+                'Downloaded file from %s is not a readable ZIP archive: %s',
                 $url,
-                $result
+                GeonamesException::describeZipError($result)
             ));
         }
         $zip->close();

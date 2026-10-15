@@ -197,7 +197,8 @@ abstract class AbstractGazetteerConverter extends AbstractConverter
             // Compared with '' rather than empty(): empty('0') is true, and 0
             // is a real elevation (sea level), not a missing one (#39).
             'elevation' => $fields[15] !== '' ? (int) $fields[15] : null,
-            'dem' => $fields[16] !== '' ? (int) $fields[16] : null,
+            // No-data markers: -9999 (gtopo30) and -32768 (SRTM voids).
+            'dem' => $fields[16] !== '' && ! in_array($fields[16], ['-9999', '-32768'], true) ? (int) $fields[16] : null,
             'timezone' => $fields[17],
             'modification_date' => $fields[18],
         ];
