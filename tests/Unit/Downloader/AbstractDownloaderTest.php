@@ -183,7 +183,7 @@ describe('AbstractDownloader', function () {
                 ->toThrow(GeonamesException::class, 'HTTP 404');
 
             expect(file_exists($destination))->toBeFalse();
-            expect(file_exists($destination.'.part'))->toBeFalse();
+            expect(glob($destination.'.*'))->toBe([]);
         });
 
         it('rejects a body shorter than Content-Length and saves nothing', function () {
@@ -197,7 +197,7 @@ describe('AbstractDownloader', function () {
                 ->toThrow(GeonamesException::class, '50 of 100 bytes');
 
             expect(file_exists($destination))->toBeFalse();
-            expect(file_exists($destination.'.part'))->toBeFalse();
+            expect(glob($destination.'.*'))->toBe([]);
         });
 
         it('rejects a .zip that is not a readable archive and saves nothing', function () {
@@ -211,7 +211,7 @@ describe('AbstractDownloader', function () {
                 ->toThrow(GeonamesException::class);
 
             expect(file_exists($destination))->toBeFalse();
-            expect(file_exists($destination.'.part'))->toBeFalse();
+            expect(glob($destination.'.*'))->toBe([]);
         });
 
         it('saves a complete zip under its final name only', function () {
@@ -223,7 +223,25 @@ describe('AbstractDownloader', function () {
                 ->testDownloadWithProgress('https://test.example.com/TH.zip', $destination);
 
             expect(file_get_contents($destination))->toBe($zip);
-            expect(file_exists($destination.'.part'))->toBeFalse();
+            expect(glob($destination.'.*'))->toBe([]);
+        });
+
+        // Review of #46: a fixed "<dest>.part" name opened with 'wb' follows a
+        // symlink planted there, so the partial file gets a fresh random name.
+        it('does not write through a file planted at <dest>.part', function () {
+            $zip = file_get_contents(__DIR__.'/../../stubs/TH.zip');
+            $destination = $this->getTestDataPath('TH.zip');
+            $target = $this->getTestDataPath('victim.txt');
+            file_put_contents($target, 'untouched');
+            symlink($target, $destination.'.part');
+            $transport = MockHttpClient::createTransport([['content' => $zip]]);
+
+            (new TestableAbstractDownloader($transport))
+                ->testDownloadWithProgress('https://test.example.com/TH.zip', $destination);
+
+            expect(file_get_contents($target))->toBe('untouched');
+            expect(file_get_contents($destination))->toBe($zip);
+            expect(is_link($destination))->toBeFalse();
         });
 
         it('leaves an earlier good file in place when a download fails', function () {

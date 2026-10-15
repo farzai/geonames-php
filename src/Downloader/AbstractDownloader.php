@@ -59,8 +59,11 @@ abstract class AbstractDownloader
     /**
      * Download a file from a URL with progress tracking.
      *
-     * The body is written to "<destination>.part" and renamed to the
-     * destination only once it is known to be whole: a 200 response, as many
+     * The body is written to a fresh "<destination>.<random>" file in the
+     * same directory (tempnam: created exclusively, so a file or symlink
+     * planted at a predictable name is never written through, and two runs
+     * never share one) and renamed to the destination only once it is known
+     * to be whole: a 200 response, as many
      * bytes as Content-Length announced, and, for a .zip, an archive that
      * opens. On any failure the partial file is removed and an earlier file
      * at the destination is left as it was, so a missing country, an outage
@@ -92,9 +95,22 @@ abstract class AbstractDownloader
         $totalSize = ! empty($contentLengthHeader) ? (int) $contentLengthHeader[0] : 0;
         $body = $response->getBody();
 
-        $partial = $destination.'.part';
+        $directory = dirname($destination);
+        // tempnam() falls back to the system temp directory, with a notice,
+        // when the directory is not writable; that is a failure here.
+        $partial = @tempnam($directory, basename($destination).'.');
+        if ($partial === false || dirname($partial) !== realpath($directory)) {
+            if ($partial !== false) {
+                unlink($partial);
+            }
+            throw GeonamesException::fileOperationFailed('create a temporary file in', $directory);
+        }
+        // tempnam() creates the file 0600; give it the mode a new file gets.
+        chmod($partial, 0666 & ~umask());
+
         $handle = fopen($partial, 'wb');
         if ($handle === false) {
+            unlink($partial);
             throw GeonamesException::fileOperationFailed('open for writing', $partial);
         }
 
