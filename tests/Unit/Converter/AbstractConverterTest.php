@@ -44,7 +44,7 @@ class TestableConverter extends AbstractConverter
         return $this->countLines($file);
     }
 
-    public function testStreamPostalCodeRecords(string $txtFile): \Generator
+    public function testStreamPostalCodeRecords(string $txtFile): Generator
     {
         return $this->streamPostalCodeRecords($txtFile);
     }

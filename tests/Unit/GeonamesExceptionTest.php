@@ -66,6 +66,6 @@ describe('GeonamesException', function () {
     it('extends RuntimeException', function () {
         $exception = GeonamesException::fileOperationFailed('test', '/test');
 
-        expect($exception)->toBeInstanceOf(\RuntimeException::class);
+        expect($exception)->toBeInstanceOf(RuntimeException::class);
     });
 });

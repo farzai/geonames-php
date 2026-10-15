@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Farzai\Geonames\Tests\Helpers;
 
+use Farzai\Transport\Transport;
+use Farzai\Transport\TransportBuilder;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -60,11 +62,11 @@ class MockHttpClient implements ClientInterface
      *
      * @param  array<array{content: string, headers?: array<string, array<string>>}>  $responses
      */
-    public static function createTransport(array $responses): \Farzai\Transport\Transport
+    public static function createTransport(array $responses): Transport
     {
         $mockClient = self::withResponses($responses);
 
-        return \Farzai\Transport\TransportBuilder::make()
+        return TransportBuilder::make()
             ->setClient($mockClient)
             ->build();
     }
