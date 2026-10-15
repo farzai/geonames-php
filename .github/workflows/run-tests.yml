@@ -72,5 +72,7 @@ jobs:
           extensions: curl, mbstring, zip
           coverage: none
 
+      # The real download reaches download.geonames.org, so it runs on pushes
+      # to main only; pull requests run the offline checks.
       - name: Install into an empty project and run
-        run: .github/scripts/consumer-smoke.sh --download
+        run: .github/scripts/consumer-smoke.sh ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && '--download' || '' }}
