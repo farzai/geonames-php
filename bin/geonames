@@ -13,6 +13,12 @@ use Symfony\Component\Console\Application;
 $version = InstalledVersions::getPrettyVersion('farzai/geonames') ?? '1.0.0';
 
 $application = new Application('Geonames CLI', $version);
-$application->add(new DownloadPostalCodesCommand());
-$application->add(new DownloadGazetteerCommand());
+foreach ([new DownloadPostalCodesCommand(), new DownloadGazetteerCommand()] as $command) {
+    // Console 7.4 added addCommand() and Console 8 removed add().
+    if (method_exists($application, 'addCommand')) {
+        $application->addCommand($command);
+    } else {
+        $application->add($command);
+    }
+}
 $application->run();
