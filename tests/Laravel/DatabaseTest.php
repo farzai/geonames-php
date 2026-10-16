@@ -31,8 +31,9 @@ it('creates the six tables with the keys the snapshot supports', function () {
     $indexes = fn (string $table) => collect(Schema::getIndexes($table));
 
     expect($indexes('geonames_countries')->pluck('columns')->flatten())->toContain('iso2')
-        ->and($indexes('geonames_postal_codes')->firstWhere('name', 'geonames_postal_codes_row_unique')['columns'])
-        ->toBe(['country_code', 'postal_code', 'place_name', 'admin1_code', 'admin2_code', 'admin3_code'])
+        ->and($indexes('geonames_postal_codes')->where('unique', true)->where('primary', false))->toHaveCount(0)
+        ->and($indexes('geonames_admin1')->where('unique', true)->where('primary', false))->toHaveCount(0)
+        ->and($indexes('geonames_admin2')->where('unique', true)->where('primary', false))->toHaveCount(0)
         ->and($indexes('geonames_alternate_names')->firstWhere('name', 'geonames_alternate_names_geoname_lang_index')['columns'])
         ->toBe(['geoname_id', 'lang']);
 });
@@ -65,7 +66,35 @@ it('keeps every postal row of a code: one code serves many places', function () 
         ->toBe(['Beverly Hills', 'Beverly Hills (annex)']);
 });
 
-it('stores unknown admin codes as empty strings so the unique key holds', function () {
+it('writes a postal row that repeats byte for byte once, and says so', function () {
+    $this->fetch(['CN'], ['countries', 'postal_codes']);
+
+    $this->artisan('geonames:seed', ['countries' => ['CN'], '--datasets' => 'postal_codes'])
+        ->expectsOutputToContain('1 identical postal rows skipped')
+        ->assertSuccessful();
+
+    expect(DB::table('geonames_postal_codes')->where('country_code', 'CN')->count())->toBe(2);
+});
+
+it('drops a postal code that a later snapshot no longer lists', function () {
+    $this->fetch(['CN'], ['countries', 'postal_codes']);
+    DB::table('geonames_postal_codes')->insert(['country_code' => 'CN', 'postal_code' => '999999', 'place_name' => 'Removed', 'precision' => 'partial', 'source' => 'geonames']);
+    DB::table('geonames_postal_codes')->insert(['country_code' => 'US', 'postal_code' => '11111', 'place_name' => 'Other country', 'precision' => 'full', 'source' => 'geonames']);
+
+    $this->artisan('geonames:seed', ['countries' => ['CN'], '--datasets' => 'postal_codes'])->assertSuccessful();
+
+    expect(DB::table('geonames_postal_codes')->where('postal_code', '999999')->count())->toBe(0)
+        ->and(DB::table('geonames_postal_codes')->where('country_code', 'US')->count())->toBe(1);
+});
+
+it('lets an abolished and a replacement admin row share a geonames code', function () {
+    $row = ['country_code' => 'ZZ', 'admin1_code' => '01', 'name' => 'Old', 'ascii_name' => 'Old', 'names' => '{}', 'geonames_code' => 'ZZ.01'];
+    DB::table('geonames_admin1')->insert([$row + ['geoname_id' => 1, 'status' => 'abolished'], array_merge($row, ['geoname_id' => 2, 'name' => 'New', 'status' => 'active'])]);
+
+    expect(DB::table('geonames_admin1')->where('geonames_code', 'ZZ.01')->count())->toBe(2);
+});
+
+it('stores unknown admin codes as empty strings so a row has the same shape everywhere', function () {
     $this->fetch(['CN'], ['countries', 'postal_codes']);
 
     $this->artisan('geonames:seed', ['countries' => ['CN'], '--datasets' => 'postal_codes'])->assertSuccessful();

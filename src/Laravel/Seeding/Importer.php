@@ -9,14 +9,21 @@ use Illuminate\Database\ConnectionInterface;
 
 /**
  * Copies fetched snapshot data into the tables of the publishable migration, streaming
- * and in chunks. Re-running is safe: rows with a geoname_id are upserted on it, postal
- * rows on the place and its admin codes (nulls stored as ''), and alternate names (which
- * have no id of their own) are replaced per country inside one transaction. Abolished
- * rows are kept with their status.
+ * and in chunks. Re-running is safe: rows with a geoname_id are upserted on it; postal
+ * codes and alternate names (which have no id of their own) are replaced per country
+ * inside one transaction, so a code removed from a later snapshot goes too. Postal rows
+ * that repeat byte for byte are written once and counted in `$duplicatesDropped`.
+ * Abolished rows are kept with their status.
  */
 final class Importer
 {
     private const CHUNK = 1000;
+
+    /** Bind parameters allowed in one statement; the lowest limit among the supported databases (SQL Server: 2100). */
+    private const MAX_BINDINGS = 2000;
+
+    /** Postal rows skipped because an identical row was already written, over all imports of this instance. */
+    public int $duplicatesDropped = 0;
 
     /**
      * @param  array<string, string>  $tables
@@ -108,12 +115,16 @@ final class Importer
 
                 continue;
             }
+            if ($dataset === 'postal_codes') {
+                $written += $this->postalCodes($country);
+
+                continue;
+            }
             $buffer = [];
             foreach ($this->repository->rawRows($dataset, $country) as $row) {
                 $buffer[] = match ($dataset) {
                     'admin2' => $this->admin2Row($row),
                     'cities' => $this->cityRow($row),
-                    'postal_codes' => $this->postalRow($row),
                     default => throw new \InvalidArgumentException(sprintf('Cannot import "%s".', $dataset)),
                 };
                 if (count($buffer) >= self::CHUNK) {
@@ -132,9 +143,37 @@ final class Importer
      */
     private function flush(string $dataset, array $rows): int
     {
-        return $dataset === 'postal_codes'
-            ? $this->upsert($dataset, $rows, ['country_code', 'postal_code', 'place_name', 'admin1_code', 'admin2_code', 'admin3_code'])
-            : $this->upsert($dataset, $rows, ['geoname_id']);
+        return $this->upsert($dataset, $rows, ['geoname_id']);
+    }
+
+    private function postalCodes(string $country): int
+    {
+        $table = $this->tables['postal_codes'];
+        $written = 0;
+
+        $this->db->transaction(function () use ($country, $table, &$written): void {
+            $this->db->table($table)->where('country_code', $country)->delete();
+            $seen = [];
+            $buffer = [];
+            foreach ($this->repository->rawRows('postal_codes', $country) as $row) {
+                $row = $this->postalRow($row);
+                $hash = substr(md5(json_encode($row, JSON_UNESCAPED_UNICODE), true), 0, 12);
+                if (isset($seen[$hash])) {
+                    $this->duplicatesDropped++;
+
+                    continue;
+                }
+                $seen[$hash] = true;
+                $buffer[] = $row;
+                if (count($buffer) >= self::CHUNK) {
+                    $written += $this->insert($table, $buffer);
+                    $buffer = [];
+                }
+            }
+            $written += $this->insert($table, $buffer);
+        });
+
+        return $written;
     }
 
     private function alternateNames(string $country): int
@@ -152,15 +191,11 @@ final class Importer
                     'colloquial' => (int) (bool) ($row['colloquial'] ?? false), 'historic' => (int) (bool) ($row['historic'] ?? false),
                 ];
                 if (count($buffer) >= self::CHUNK) {
-                    $this->db->table($table)->insert($buffer);
-                    $written += count($buffer);
+                    $written += $this->insert($table, $buffer);
                     $buffer = [];
                 }
             }
-            if ($buffer !== []) {
-                $this->db->table($table)->insert($buffer);
-                $written += count($buffer);
-            }
+            $written += $this->insert($table, $buffer);
         });
 
         return $written;
@@ -222,8 +257,33 @@ final class Importer
             return 0;
         }
         $update = array_values(array_diff(array_keys($rows[0]), $keys));
-        $this->db->table($this->tables[$dataset])->upsert($rows, $keys, $update);
+        foreach (array_chunk($rows, $this->rowsPerStatement($rows)) as $chunk) {
+            $this->db->table($this->tables[$dataset])->upsert($chunk, $keys, $update);
+        }
 
         return count($rows);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     */
+    private function insert(string $table, array $rows): int
+    {
+        if ($rows === []) {
+            return 0;
+        }
+        foreach (array_chunk($rows, $this->rowsPerStatement($rows)) as $chunk) {
+            $this->db->table($table)->insert($chunk);
+        }
+
+        return count($rows);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     */
+    private function rowsPerStatement(array $rows): int
+    {
+        return max(1, intdiv(self::MAX_BINDINGS, count($rows[0])));
     }
 }

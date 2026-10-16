@@ -20,10 +20,14 @@ final class SeedCommand extends Command
     public function handle(GeonamesRepository $repository, ConnectionInterface $db): int
     {
         $datasets = array_values(array_filter(explode(',', (string) $this->option('datasets'))));
-        $counts = (new Importer($repository, $db, (array) config('geonames.tables')))->import((array) $this->argument('countries'), $datasets);
+        $importer = new Importer($repository, $db, (array) config('geonames.tables'));
+        $counts = $importer->import((array) $this->argument('countries'), $datasets);
 
         foreach ($counts as $dataset => $rows) {
             $this->line(sprintf('  %-16s %d rows', $dataset, $rows));
+        }
+        if ($importer->duplicatesDropped > 0) {
+            $this->line(sprintf('  %d identical postal rows skipped', $importer->duplicatesDropped));
         }
         $this->info('Snapshot '.$repository->snapshot().' imported.');
 

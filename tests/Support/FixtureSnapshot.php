@@ -105,7 +105,9 @@ final class FixtureSnapshot
             ['geoname_id' => 5368361, 'lang' => 'th', 'name' => 'ลอสแอนเจลิส', 'preferred' => true, 'short' => false, 'colloquial' => false, 'historic' => false],
         ]);
         $this->files['by-country/CN/postal_codes.ndjson.gz'] = $ndjson('postal_codes', [
-            $this->postal('CN', '10', 'Beijing', 'Beijing', '22', null, null, 39.9, 116.4, 'partial'),
+            $this->postal('CN', '100000', 'Beijing', 'Beijing', '22', null, null, 39.9, 116.4, 'partial'),
+            $this->postal('CN', '231100', 'Hefei', 'Anhui', '01', null, null, 31.8, 117.2, 'partial'),
+            $this->postal('CN', '231100', 'Hefei', 'Anhui', '01', null, null, 31.8, 117.2, 'partial'),
         ]);
 
         $this->files['sqlite/TH.sqlite'] = $this->sqlite('TH', [

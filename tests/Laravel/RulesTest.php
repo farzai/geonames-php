@@ -91,6 +91,9 @@ it('can require the code to exist, never treating a partial prefix as a complete
     expect(validate(['country' => 'US', 'postal' => '90210'], $rule('US')))->toBe([])
         ->and(validate(['country' => 'US', 'postal' => '90211'], $rule('US')))->toHaveKey('postal')
         ->and(validate(['country' => 'CN', 'postal' => '100000'], $rule('CN')))->toBe([], 'a listed prefix covers the full code')
+        ->and(validate(['country' => 'CN', 'postal' => '101234'], $rule('CN')))->toBe([], 'zero-padded listed codes are prefixes without the padding')
+        ->and(validate(['country' => 'CN', 'postal' => '231199'], $rule('CN')))->toBe([])
+        ->and(validate(['country' => 'CN', 'postal' => '231200'], $rule('CN')))->toHaveKey('postal')
         ->and(validate(['country' => 'CN', 'postal' => '200000'], $rule('CN')))->toHaveKey('postal')
         ->and(validate(['country' => 'TH', 'postal' => '10200'], $rule('TH')))->toHaveKey('postal');
 
