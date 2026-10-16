@@ -2,6 +2,20 @@
 
 All notable changes to `geonames-php` will be documented in this file.
 
+## 3.0.0 - 2026-10-16
+
+Rewrite around the verified Farzai GeoNames snapshots. Read UPGRADING.md before you upgrade from 2.x.
+
+- Reads the snapshots published at https://data.farzai.com/geonames/ (pinned snapshot, sha256-verified, no network at runtime); `geonames fetch` and `php artisan geonames:fetch` download what you ask for.
+- New API: `Geonames::country()`, `admin1()`, `admin2()`, `cities()`, `city()`, `postalCodes()`, `search()`, `nearest()` and read-only models.
+- Laravel: validation rules, Eloquent casts, publishable migrations, seeder (tested on SQLite, Postgres 16, MySQL 8.4, MariaDB 10.2 and 11.8), config.
+- Removed: the downloaders, all converters including MongoDB, the `--feature-class` option, `farzai/transport`, `symfony/http-client`, `symfony/console`, `psr/log`, `ext-zip`.
+- PHP 8.3 or newer.
+
+Data: GeoNames, CC BY 4.0. See the README for attribution.
+
+PRs: #52, #53, #54, #55, #56, #57. Closes #40, #51.
+
 ## Unreleased
 
 ### 3.0.0: rewrite around verified Farzai GeoNames snapshots
