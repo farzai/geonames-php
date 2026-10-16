@@ -198,7 +198,7 @@ final class FixtureSnapshot
             'country_code' => $cc, 'admin1_code' => $a1, 'admin2_code' => $a2, 'admin1_geoname_id' => null, 'admin2_geoname_id' => null, 'population' => $pop,
             'population_tier' => $tier, 'elevation_m' => null, 'dem_m' => 10, 'time_zone' => $tz, 'source' => ['dataset' => 'geonames', 'modified' => '2026-01-01']] + $this->history();
         if ($quirk === 'unknown_kind') {
-            $row['kind'] = 'future_kind';
+            $row['kind'] = 'new_kind_from_a_later_minor';
         }
         if ($quirk === 'status_gone') {
             $row['status'] = 'abolished';

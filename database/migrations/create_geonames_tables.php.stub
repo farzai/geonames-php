@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('continent', 2)->nullable();
             $table->unsignedBigInteger('population')->nullable();
             $table->string('currency_code', 3)->nullable();
-            $table->string('calling_code', 16)->nullable();
+            $table->string('calling_code', 32)->nullable();
             $table->json('languages');
             $table->json('time_zones');
             $table->string('postal_code_regex')->nullable();
@@ -71,7 +71,7 @@ return new class extends Migration
             $table->json('names');
             $table->decimal('lat', 8, 5);
             $table->decimal('lon', 8, 5);
-            $table->string('kind', 12);
+            $table->string('kind', 32);
             $table->string('feature_class', 1);
             $table->string('feature_code', 10);
             $table->boolean('is_capital')->default(false);
