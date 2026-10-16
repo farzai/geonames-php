@@ -1,59 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Farzai\Geonames\Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
-    protected function setUp(): void
+    /** @var list<string> */
+    private array $temporary = [];
+
+    public function temporaryDirectory(): string
     {
-        parent::setUp();
+        $dir = sys_get_temp_dir().'/geonames-test-'.bin2hex(random_bytes(6));
+        mkdir($dir, 0775, true);
+        $this->temporary[] = $dir;
 
-        // Create data directory if it doesn't exist
-        $dataDir = __DIR__.'/data';
-        if (! is_dir($dataDir)) {
-            mkdir($dataDir, 0777, true);
-        }
-
-        // Ensure directory is writable
-        if (! is_writable($dataDir)) {
-            chmod($dataDir, 0777);
-        }
+        return $dir;
     }
 
     protected function tearDown(): void
     {
+        foreach ($this->temporary as $dir) {
+            $this->remove($dir);
+        }
         parent::tearDown();
-
-        // Cleanup test data
-        $this->cleanupDirectory(__DIR__.'/data');
     }
 
-    protected function getTestDataPath(string $path = ''): string
+    private function remove(string $path): void
     {
-        return __DIR__.'/data/'.ltrim($path, '/');
-    }
+        if (is_link($path) || is_file($path)) {
+            @unlink($path);
 
-    private function cleanupDirectory(string $dir): void
-    {
-        if (! is_dir($dir)) {
             return;
         }
-
-        $files = new \DirectoryIterator($dir);
-        foreach ($files as $file) {
-            if ($file->isDot()) {
-                continue;
-            }
-
-            // A symlink is removed as a link, never followed into its target.
-            if ($file->isDir() && ! $file->isLink()) {
-                $this->cleanupDirectory($file->getPathname());
-                rmdir($file->getPathname());
-            } else {
-                unlink($file->getPathname());
+        foreach (is_dir($path) ? (scandir($path) ?: []) : [] as $entry) {
+            if ($entry !== '.' && $entry !== '..') {
+                $this->remove($path.'/'.$entry);
             }
         }
+        @rmdir($path);
     }
 }

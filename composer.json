@@ -1,27 +1,42 @@
 {
     "name": "farzai/geonames",
     "type": "library",
-    "description": "A PHP library for downloading and converting Geonames data.",
-    "keywords": ["geonames", "countries", "data"],
+    "description": "GeoNames countries, administrative divisions, cities and postal codes from verified Farzai snapshots. Plain PHP, with first-class Laravel support.",
+    "keywords": [
+        "geonames",
+        "countries",
+        "cities",
+        "postal-code",
+        "geocoding",
+        "iso-3166",
+        "laravel",
+        "validation"
+    ],
     "homepage": "https://github.com/farzai/geonames-php",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "parsilver",
+            "role": "Developer"
+        }
+    ],
     "require": {
-        "php": "^8.2",
-        "ext-zip": "*",
-        "farzai/transport": "^2.1",
-        "psr/log": "^1.1 || ^2.0 || ^3.0",
-        "symfony/console": "^6.4 || ^7.0 || ^8.0",
-        "symfony/http-client": "^6.4 || ^7.0 || ^8.0"
+        "php": "^8.3",
+        "ext-json": "*",
+        "ext-zlib": "*",
+        "illuminate/collections": "^12.0 || ^13.0",
+        "illuminate/contracts": "^12.0 || ^13.0"
     },
     "require-dev": {
         "laravel/pint": "^1.2",
+        "orchestra/testbench": "^10.0 || ^11.0",
         "pestphp/pest": "^3.0 || ^4.0",
-        "phpstan/extension-installer": "^1.1",
-        "phpstan/phpstan": "^2.0",
-        "phpstan/phpstan-deprecation-rules": "^2.0",
-        "phpstan/phpstan-phpunit": "^2.0",
-        "spatie/ray": "^1.28"
+        "phpstan/phpstan": "^2.0"
     },
-    "bin": ["bin/geonames"],
+    "suggest": {
+        "ext-pdo_sqlite": "Reads the per-country SQLite files (nearest-city lookups).",
+        "laravel/framework": "Service provider, facade, validation rules, Eloquent casts, migrations and seeder are discovered automatically"
+    },
     "autoload": {
         "psr-4": {
             "Farzai\\Geonames\\": "src/"
@@ -32,30 +47,17 @@
             "Farzai\\Geonames\\Tests\\": "tests/"
         }
     },
-    "authors": [
-        {
-            "name": "parsilver",
-            "role": "Developer"
-        }
-    ],
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "phpstan/extension-installer": true,
-            "php-http/discovery": true
-        }
-    },
     "scripts": {
         "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --coverage",
         "format": "vendor/bin/pint",
         "analyse": "vendor/bin/phpstan analyse"
     },
-    "suggest": {
-        "mongodb/mongodb": "Required for MongoDB output format support."
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true,
-    "license": "MIT"
+    "prefer-stable": true
 }
