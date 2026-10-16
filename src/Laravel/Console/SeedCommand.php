@@ -27,7 +27,7 @@ final class SeedCommand extends Command
             $this->line(sprintf('  %-16s %d rows', $dataset, $rows));
         }
         if ($importer->duplicatesDropped > 0) {
-            $this->line(sprintf('  %d identical postal rows skipped', $importer->duplicatesDropped));
+            $this->line(sprintf('  %d identical postal rows removed', $importer->duplicatesDropped));
         }
         $this->info('Snapshot '.$repository->snapshot().' imported.');
 

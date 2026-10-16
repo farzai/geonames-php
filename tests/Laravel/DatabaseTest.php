@@ -70,7 +70,7 @@ it('writes a postal row that repeats byte for byte once, and says so', function 
     $this->fetch(['CN'], ['countries', 'postal_codes']);
 
     $this->artisan('geonames:seed', ['countries' => ['CN'], '--datasets' => 'postal_codes'])
-        ->expectsOutputToContain('1 identical postal rows skipped')
+        ->expectsOutputToContain('1 identical postal rows removed')
         ->assertSuccessful();
 
     expect(DB::table('geonames_postal_codes')->where('country_code', 'CN')->count())->toBe(2);
