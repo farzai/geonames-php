@@ -161,7 +161,7 @@ final class SnapshotFetcher
         $part = $destination.'.part';
 
         try {
-            $this->transport->download($url, $part);
+            $this->transport->download($url, $part, $entry['bytes']);
             clearstatcache(true, $part);
             $size = (int) filesize($part);
             if ($size !== $entry['bytes']) {

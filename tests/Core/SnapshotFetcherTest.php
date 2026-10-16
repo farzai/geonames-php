@@ -8,6 +8,7 @@ use Farzai\Geonames\Exceptions\UnsupportedSchemaException;
 use Farzai\Geonames\Snapshot\Datasets;
 use Farzai\Geonames\Snapshot\SnapshotFetcher;
 use Farzai\Geonames\Snapshot\SnapshotStore;
+use Farzai\Geonames\Snapshot\StreamTransport;
 use Farzai\Geonames\Tests\Support\FakeTransport;
 use Farzai\Geonames\Tests\Support\FixtureSnapshot;
 
@@ -127,4 +128,37 @@ it('refuses a manifest path that would leave the store', function () {
     // The safe-path check lives in Datasets::assertSafePath; the unsafe name can only be requested through a crafted dataset path.
     expect(fn () => Datasets::assertSafePath('by-country/../../evil.ndjson.gz'))->toThrow(SnapshotException::class, 'safe relative path');
     expect($fetcher->fetch(['US'], ['cities'])->downloaded)->toBe(['by-country/US/cities.ndjson.gz']);
+});
+
+it('caps each download at the size the manifest declares', function () {
+    $fetcher = fetcher($this, null, $transport, $store);
+    $path = FixtureSnapshot::SNAPSHOT.'/by-country/US/cities.ndjson.gz';
+    $size = strlen((new FixtureSnapshot)->files['by-country/US/cities.ndjson.gz']);
+
+    $transport->replace($path, str_repeat('x', $size + 1));
+    expect(fn () => $fetcher->fetch(['US'], ['cities']))->toThrow(SnapshotException::class, 'too large');
+    expect($store->has(FixtureSnapshot::SNAPSHOT, 'by-country/US/cities.ndjson.gz'))->toBeFalse()
+        ->and(array_values($transport->limits))->toContain($size);
+});
+
+it('refuses plain http except for localhost', function () {
+    $transport = new StreamTransport(timeoutSeconds: 1);
+
+    expect(fn () => $transport->get('http://data.example.com/latest.json'))->toThrow(SnapshotException::class, 'only https');
+    expect(fn () => $transport->get('ftp://data.example.com/latest.json'))->toThrow(SnapshotException::class, 'only https');
+});
+
+it('keeps the default store in a private per-user directory when HOME is missing', function () {
+    $home = getenv('HOME');
+    $path = getenv('GEONAMES_PATH');
+    putenv('HOME');
+    putenv('GEONAMES_PATH');
+    try {
+        $root = SnapshotStore::default()->root();
+        expect($root)->toContain('farzai-geonames-')
+            ->and(fileperms($root) & 0077)->toBe(0);
+    } finally {
+        putenv($home === false ? 'HOME' : "HOME=$home");
+        putenv($path === false ? 'GEONAMES_PATH' : "GEONAMES_PATH=$path");
+    }
 });

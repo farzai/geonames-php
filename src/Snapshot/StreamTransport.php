@@ -17,22 +17,25 @@ final class StreamTransport implements Transport
         private readonly string $userAgent = 'farzai-geonames/3.0 (+https://github.com/farzai/geonames-php)',
     ) {}
 
-    public function get(string $url): string
+    public function get(string $url, int $maxBytes = self::MAX_SMALL_BYTES): string
     {
         $handle = $this->open($url);
         try {
-            $body = stream_get_contents($handle);
+            $body = stream_get_contents($handle, $maxBytes + 1);
         } finally {
             fclose($handle);
         }
         if ($body === false) {
             throw SnapshotException::download($url, 'the answer could not be read');
         }
+        if (strlen($body) > $maxBytes) {
+            throw SnapshotException::download($url, sprintf('the answer is larger than %d bytes', $maxBytes));
+        }
 
         return $body;
     }
 
-    public function download(string $url, string $destination): void
+    public function download(string $url, string $destination, int $maxBytes): void
     {
         $source = $this->open($url);
         $target = @fopen($destination, 'wb');
@@ -42,8 +45,12 @@ final class StreamTransport implements Transport
         }
 
         try {
-            if (stream_copy_to_stream($source, $target) === false) {
+            $copied = stream_copy_to_stream($source, $target, $maxBytes + 1);
+            if ($copied === false) {
                 throw SnapshotException::download($url, 'the transfer was cut short');
+            }
+            if ($copied > $maxBytes) {
+                throw SnapshotException::download($url, sprintf('the answer is larger than %d bytes', $maxBytes));
             }
         } finally {
             fclose($source);
@@ -56,8 +63,8 @@ final class StreamTransport implements Transport
      */
     private function open(string $url)
     {
-        if (! str_starts_with($url, 'https://') && ! str_starts_with($url, 'http://')) {
-            throw SnapshotException::download($url, 'only http and https URLs are fetched');
+        if (! self::isAllowed($url)) {
+            throw SnapshotException::download($url, 'only https URLs are fetched (http only for localhost)');
         }
 
         $context = stream_context_create(['http' => [
@@ -79,6 +86,10 @@ final class StreamTransport implements Transport
         $headers = function_exists('stream_get_meta_data') ? (stream_get_meta_data($handle)['wrapper_data'] ?? []) : [];
         $status = 0;
         foreach ((array) $headers as $line) {
+            if (is_string($line) && preg_match('#^Location:\s*(\S+)#i', $line, $m) && preg_match('#^https?://#i', $m[1]) && ! self::isAllowed($m[1])) {
+                fclose($handle);
+                throw SnapshotException::download($url, 'redirected to a plain http URL');
+            }
             if (is_string($line) && preg_match('#^HTTP/\S+\s+(\d{3})#', $line, $m)) {
                 $status = (int) $m[1]; // the last status line wins after redirects
             }
@@ -89,5 +100,14 @@ final class StreamTransport implements Transport
         }
 
         return $handle;
+    }
+
+    private static function isAllowed(string $url): bool
+    {
+        if (str_starts_with($url, 'https://')) {
+            return true;
+        }
+
+        return preg_match('#^http://(localhost|127\.0\.0\.1|\[::1\])([:/]|$)#', $url) === 1;
     }
 }

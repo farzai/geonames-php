@@ -12,17 +12,20 @@ use Farzai\Geonames\Exceptions\SnapshotException;
  */
 interface Transport
 {
-    /**
-     * The body of a small file (latest.json, snapshots.json, manifest.json).
-     *
-     * @throws SnapshotException on any non-200 answer or network failure
-     */
-    public function get(string $url): string;
+    public const MAX_SMALL_BYTES = 5 * 1024 * 1024;
 
     /**
-     * Stream a large file to `$destination`.
+     * The body of a small file (latest.json, snapshots.json, manifest.json), at most
+     * `$maxBytes` long.
      *
-     * @throws SnapshotException on any non-200 answer or network failure
+     * @throws SnapshotException on any non-200 answer, network failure or oversized body
      */
-    public function download(string $url, string $destination): void;
+    public function get(string $url, int $maxBytes = self::MAX_SMALL_BYTES): string;
+
+    /**
+     * Stream a large file to `$destination`, refusing to write more than `$maxBytes`.
+     *
+     * @throws SnapshotException on any non-200 answer, network failure or oversized body
+     */
+    public function download(string $url, string $destination, int $maxBytes): void;
 }

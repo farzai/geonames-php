@@ -18,11 +18,31 @@ final class SnapshotStore
     {
         $root = getenv('GEONAMES_PATH');
         if (! is_string($root) || $root === '') {
-            $home = getenv('HOME') ?: sys_get_temp_dir();
-            $root = $home.'/.cache/farzai-geonames';
+            $home = getenv('HOME');
+            $root = is_string($home) && $home !== ''
+                ? $home.'/.cache/farzai-geonames'
+                : self::privateTempDirectory();
         }
 
         return new self($root);
+    }
+
+    /**
+     * With no HOME (php-fpm, cron) the shared temp directory is the only place left,
+     * so use a per-user directory there and refuse one that someone else owns.
+     */
+    private static function privateTempDirectory(): string
+    {
+        $uid = function_exists('posix_geteuid') ? posix_geteuid() : (int) getmyuid();
+        $dir = sys_get_temp_dir().'/farzai-geonames-'.$uid;
+        if (! is_dir($dir) && ! @mkdir($dir, 0700) && ! is_dir($dir)) {
+            throw new GeonamesException(sprintf('Cannot create %s; set GEONAMES_PATH.', $dir));
+        }
+        if (is_link($dir) || fileowner($dir) !== $uid || (fileperms($dir) & 0077) !== 0) {
+            throw new GeonamesException(sprintf('%s is not private to this user; set GEONAMES_PATH.', $dir));
+        }
+
+        return $dir;
     }
 
     public function root(): string

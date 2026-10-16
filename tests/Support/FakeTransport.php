@@ -17,14 +17,26 @@ final class FakeTransport implements Transport
      */
     public function __construct(public array $routes, private readonly string $base = 'https://data.test/geonames/v1/') {}
 
-    public function get(string $url): string
+    public function get(string $url, int $maxBytes = self::MAX_SMALL_BYTES): string
     {
-        return $this->body($url);
+        $body = $this->body($url);
+        if (strlen($body) > $maxBytes) {
+            throw SnapshotException::download($url, 'the answer is too large');
+        }
+
+        return $body;
     }
 
-    public function download(string $url, string $destination): void
+    public array $limits = [];
+
+    public function download(string $url, string $destination, int $maxBytes): void
     {
-        file_put_contents($destination, $this->body($url));
+        $this->limits[$url] = $maxBytes;
+        $body = $this->body($url);
+        if (strlen($body) > $maxBytes) {
+            throw SnapshotException::download($url, 'the answer is too large');
+        }
+        file_put_contents($destination, $body);
     }
 
     public function cut(string $path, int $keep): void
