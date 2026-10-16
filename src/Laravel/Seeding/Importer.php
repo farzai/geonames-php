@@ -20,6 +20,9 @@ final class Importer
 {
     private const CHUNK = 1000;
 
+    /** Postal codes looked at per round trip when removing repeated rows. */
+    private const GROUP_PAGE = 500;
+
     /** Bind parameters allowed in one statement; the lowest limit among the supported databases (SQL Server: 2100). */
     private const MAX_BINDINGS = 2000;
 
@@ -172,27 +175,51 @@ final class Importer
     }
 
     /**
-     * Keeps the first of each group of rows that are equal in every value column. Done in
-     * the database so no per-row state is held in PHP (GB has 1.8 million rows). A window
-     * function numbers each group and the delete takes the numbered-over-one ids; the
-     * NOT IN (SELECT MIN(id) ... GROUP BY) form degrades to a non-hashed subplan on
-     * Postgres at this size. The derived table lets MySQL delete from the table it selects
-     * from. Needs MySQL 8, MariaDB 10.2, SQLite 3.25 or Postgres (any supported version).
+     * Keeps the first of each group of rows that are equal in every value column. Memory
+     * stays flat (GB has 1.8 million rows): the postal codes that occur more than once
+     * come from an index-only GROUP BY, a page at a time; only the rows of those codes are
+     * read back, compared in PHP, and the repeats deleted by id. No window function and no
+     * subquery on the table being deleted from, so the plan does not depend on table
+     * statistics (a ROW_NUMBER delete runs as a nested loop on Postgres when the country's
+     * rows are new and unanalysed) and it runs on any supported database. The comparison
+     * is exact, so a collation that ignores case or accents cannot merge two rows.
      */
     private function dropRepeatedRows(string $table, string $country): int
     {
-        $grammar = $this->db->table($table)->getGrammar();
-        $partition = implode(', ', array_map(
-            static fn (string $column): string => $grammar->wrap($column),
-            array_keys($this->postalRow(['country_code' => $country, 'postal_code' => '', 'place_name' => '']))
-        ));
-        $numbered = $this->db->table($table)->where('country_code', $country)
-            ->selectRaw(sprintf('%s as id, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) as rn', $grammar->wrap('id'), $partition, $grammar->wrap('id')));
-        $repeats = $numbered->newQuery()->fromSub($numbered, 'd')->where('rn', '>', 1)->select('id');
+        $columns = array_keys($this->postalRow(['country_code' => $country, 'postal_code' => '', 'place_name' => '']));
+        $dropped = 0;
+        $after = null;
 
-        return $this->db->table($table)->where('country_code', $country)
-            ->whereIn('id', $repeats)
-            ->delete();
+        while (true) {
+            $codes = $this->db->table($table)->where('country_code', $country)
+                ->when($after !== null, fn ($query) => $query->where('postal_code', '>', $after))
+                ->groupBy('postal_code')->havingRaw('count(*) > 1')
+                ->orderBy('postal_code')->limit(self::GROUP_PAGE)
+                ->pluck('postal_code')->all();
+            if ($codes === []) {
+                return $dropped;
+            }
+            $after = end($codes);
+
+            $seen = [];
+            $repeats = [];
+            $rows = $this->db->table($table)->where('country_code', $country)->whereIn('postal_code', $codes)
+                ->orderBy('id')->get(array_merge(['id'], $columns));
+            foreach ($rows as $row) {
+                $values = (array) $row;
+                $id = $values['id'];
+                unset($values['id']);
+                $key = md5(json_encode(array_values($values), JSON_THROW_ON_ERROR));
+                if (isset($seen[$key])) {
+                    $repeats[] = $id;
+                } else {
+                    $seen[$key] = true;
+                }
+            }
+            foreach (array_chunk($repeats, self::MAX_BINDINGS) as $ids) {
+                $dropped += $this->db->table($table)->whereIn('id', $ids)->delete();
+            }
+        }
     }
 
     private function alternateNames(string $country): int

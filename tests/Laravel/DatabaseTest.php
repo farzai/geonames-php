@@ -177,3 +177,25 @@ it('removes repeated postal rows in the database, however far apart they are', f
         ->and($counts['postal_codes'])->toBe(3001)
         ->and($importer->duplicatesDropped)->toBe(4);
 });
+
+it('removes repeats across more than one page of repeated postal codes, and treats null as a value', function () {
+    $row = fn (int $i) => ['country_code' => 'GB', 'postal_code' => 'AB'.$i, 'place_name' => 'Place '.$i, 'admin1_name' => null, 'lat' => 51.5, 'lon' => -0.1, 'precision' => 'full'];
+    $rows = [];
+    foreach (range(1, 1200) as $i) {
+        $rows[] = $row($i);
+        $rows[] = $row($i);                              // repeat of the row above
+        $rows[] = ['admin1_name' => 'England'] + $row($i); // null versus a value: kept
+    }
+
+    $importer = new Importer(
+        GeonamesRepository::fromArrays(postalCodes: ['GB' => $rows]),
+        DB::connection(),
+        config('geonames.tables'),
+    );
+    $counts = $importer->import(['GB'], ['postal_codes']);
+
+    expect(DB::table('geonames_postal_codes')->where('country_code', 'GB')->count())->toBe(2400)
+        ->and($counts['postal_codes'])->toBe(2400)
+        ->and($importer->duplicatesDropped)->toBe(1200)
+        ->and(DB::table('geonames_postal_codes')->where('postal_code', 'AB600')->orderBy('id')->pluck('admin1_name')->all())->toBe([null, 'England']);
+});
