@@ -158,7 +158,7 @@ final class SnapshotFetcher
     private function download(string $url, string $destination, array $entry): void
     {
         $this->ensureDirectory(dirname($destination));
-        $part = $destination.'.part';
+        $part = $this->partPath($destination);
 
         try {
             $this->transport->download($url, $part, $entry['bytes']);
@@ -209,6 +209,14 @@ final class SnapshotFetcher
         }
     }
 
+    /**
+     * A name no other process uses, so two fetches never write or rename each other's file.
+     */
+    private function partPath(string $destination): string
+    {
+        return sprintf('%s.%d.%s.part', $destination, getmypid(), bin2hex(random_bytes(4)));
+    }
+
     private function ensureDirectory(string $dir): void
     {
         if (! is_dir($dir) && ! @mkdir($dir, 0775, true) && ! is_dir($dir)) {
@@ -218,7 +226,7 @@ final class SnapshotFetcher
 
     private function atomicWrite(string $path, string $body): void
     {
-        $part = $path.'.part';
+        $part = $this->partPath($path);
         if (file_put_contents($part, $body) === false || ! rename($part, $path)) {
             @unlink($part);
             throw new GeonamesException(sprintf('Cannot write %s.', $path));

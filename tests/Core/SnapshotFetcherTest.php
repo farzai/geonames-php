@@ -9,6 +9,7 @@ use Farzai\Geonames\Snapshot\Datasets;
 use Farzai\Geonames\Snapshot\SnapshotFetcher;
 use Farzai\Geonames\Snapshot\SnapshotStore;
 use Farzai\Geonames\Snapshot\StreamTransport;
+use Farzai\Geonames\Snapshot\Transport;
 use Farzai\Geonames\Tests\Support\FakeTransport;
 use Farzai\Geonames\Tests\Support\FixtureSnapshot;
 
@@ -161,4 +162,39 @@ it('keeps the default store in a private per-user directory when HOME is missing
         putenv($home === false ? 'HOME' : "HOME=$home");
         putenv($path === false ? 'GEONAMES_PATH' : "GEONAMES_PATH=$path");
     }
+});
+
+it('survives a second fetch of the same file running in the middle of the first', function () {
+    $fixture = new FixtureSnapshot;
+    $inner = new FakeTransport($fixture->routes());
+    $store = new SnapshotStore($this->temporaryDirectory());
+    $fetcher = null;
+    $rival = new SnapshotFetcher($inner, $store, $fixture->pin(), 'https://data.test/geonames/v1');
+    $ran = false;
+
+    $transport = new class($inner, $rival, $ran) implements Transport
+    {
+        public function __construct(private FakeTransport $inner, private SnapshotFetcher $rival, private bool &$ran) {}
+
+        public function get(string $url, int $maxBytes = self::MAX_SMALL_BYTES): string
+        {
+            return $this->inner->get($url, $maxBytes);
+        }
+
+        public function download(string $url, string $destination, int $maxBytes): void
+        {
+            $this->inner->download($url, $destination, $maxBytes);
+            if (! $this->ran) {
+                $this->ran = true;
+                $this->rival->fetch(['US'], ['cities']); // finishes while the first is still checking its file
+            }
+        }
+    };
+    $fetcher = new SnapshotFetcher($transport, $store, $fixture->pin(), 'https://data.test/geonames/v1');
+
+    $fetcher->fetch(['US'], ['cities']);
+
+    expect($ran)->toBeTrue()
+        ->and($store->has(FixtureSnapshot::SNAPSHOT, 'by-country/US/cities.ndjson.gz'))->toBeTrue()
+        ->and(glob($store->snapshotDir(FixtureSnapshot::SNAPSHOT).'/{,by-country/US/}*.part', GLOB_BRACE))->toBe([]);
 });
