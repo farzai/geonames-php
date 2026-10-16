@@ -212,10 +212,11 @@ Tables: `geonames_countries`, `geonames_admin1`, `geonames_admin2`, `geonames_ci
   re-run changes nothing. Postal codes and alternate names have no id of their own, so
   they are replaced per country in one transaction: a code removed from a later snapshot
   goes too. The postal file repeats a few rows byte for byte (JP, CH, IN, FR); after the
-  insert the database deletes each repeat, keeping the first, and the seeder says how many
-  it removed. This uses a window function, so the seeder needs MySQL 8, MariaDB 10.2,
-  SQLite 3.25 or Postgres. Admin `geonames_code` is an
-  index, not a unique key, because an abolished row and its replacement share a code.
+  insert the seeder finds the postal codes that occur more than once, compares those rows
+  and deletes each repeat, keeping the first, and says how many it removed. It uses plain
+  GROUP BY and index lookups, so there is no database version floor beyond Laravel's own.
+  Admin `geonames_code` is an index, not a unique key, because an abolished row and its
+  replacement share a code.
 - **Abolished rows** are kept, with `status = abolished`.
 - `GeonamesSeeder` (publish with `--tag=geonames-seeder`) does the same from `db:seed`.
 - Add columns only through new migrations of your own.
