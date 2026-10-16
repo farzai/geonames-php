@@ -58,6 +58,8 @@ vendor/bin/geonames fetch TH --datasets=all --snapshot=latest
 - **Pinned.** `latest.json` is read only with `--snapshot=latest`. A snapshot that
   `snapshots.json` lists as withdrawn is refused, and so is a different schema major
   version (a newer minor reads fine).
+  `--snapshot=latest` trusts `data.farzai.com` end to end; the bundled pin is the anchor
+  for everything else. Only https is fetched (plain http only for localhost).
 - **Country codes** must be two letters; anything else (`../../x`, `all`) is refused.
 - A file the snapshot does not have is reported, not an error. Thailand has no postal
   file: use [`farzai/thailand-address`](https://github.com/parsilver/thailand-provinces-php),
