@@ -1,0 +1,18 @@
+# farzai/geonames
+
+> PHP and Laravel package: GeoNames countries, admin divisions, cities and postal codes, read from verified Farzai snapshots (https://data.farzai.com/geonames/). No network at runtime; `geonames fetch` downloads files and checks every sha256. Data from GeoNames (geonames.org), licensed under CC BY 4.0.
+
+## Docs
+- [README](https://github.com/farzai/geonames-php/blob/main/README.md): install, fetch, API, Laravel rules, casts, migrations
+- [llms-full.txt](https://github.com/farzai/geonames-php/blob/main/llms-full.txt): the complete reference for an AI assistant
+- [UPGRADING](https://github.com/farzai/geonames-php/blob/main/UPGRADING.md): 2.x to 3.0
+- [Snapshot schema](https://github.com/farzai/geonames-php/blob/main/data/schema.json)
+- [Dataset](https://data.farzai.com/geonames/v1/latest.json)
+
+## Key facts
+- Install: `composer require farzai/geonames`; PHP 8.3+.
+- Fetch: `vendor/bin/geonames fetch TH --datasets=cities,postal_codes [--sqlite] [--snapshot=latest]`; Laravel: `php artisan geonames:fetch`.
+- Read: `Geonames::country('TH')`, `cities('TH')`, `postalCodes('US','90210')`, `search()`, `nearest(lat, lon, 'TH')`.
+- Thai postal codes are not here: use farzai/thailand-address.
+- Postal rows have `precision` full or partial; never treat partial as a full code.
+- Unknown fields and enum values are ignored; null means unknown.

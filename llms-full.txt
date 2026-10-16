@@ -1,0 +1,45 @@
+# farzai/geonames 3.0 (complete reference)
+
+Package: `farzai/geonames` on Packagist. Repository: https://github.com/farzai/geonames-php. PHP 8.3+, `ext-json`, `ext-zlib`; Laravel 12 or 13 optional.
+Data from GeoNames (geonames.org), licensed under CC BY 4.0. Snapshots are built and published by https://github.com/parsilver/geonames-data to https://data.farzai.com/geonames/v1/.
+
+## Purpose
+Read GeoNames countries, first and second level administrative divisions, cities and postal codes in PHP and Laravel without downloading from geonames.org. The package reads only local files that were verified against a manifest. It never uses the network at runtime.
+
+## Data model (schema_version 1)
+Every JSON file is an envelope `{schema_version, snapshot, data}`. NDJSON files are gzipped: the first line is `{schema_version, snapshot, dataset}`, then one row per line.
+Rules: null means unknown; ignore fields and enum values you do not know (an unknown `kind` is `other`); a newer schema minor is read as usual, a different major is refused.
+- country: geoname_id, iso2, iso3, iso_numeric, fips, name, names, wikidata_id, kind=country, capital, continent, area_sq_km, population, currency {code, name}, calling_code, tld, languages, neighbours, time_zones, postal_code_format, postal_code_regex, source, status.
+- admin1: geoname_id, geonames_code ("TH.40"), country_code, admin1_code, name, ascii_name, names, wikidata_id, kind, feature_class, feature_code, iso_3166_2 (nullable attribute, never a key), source, status.
+- admin2: as admin1 plus admin2_code, admin1_geoname_id.
+- city: geoname_id, name, ascii_name, names, wikidata_id, lat, lon (WGS84, 5 decimals), kind (city, capital, seat, ...), feature_class, feature_code, is_capital, admin_seat_level, country_code, admin1_code, admin2_code, admin1_geoname_id, admin2_geoname_id, population, population_tier (15000, 5000, 1000 or 500), elevation_m, dem_m, time_zone (IANA), source, status. Only places with population >= 500 or an administrative seat.
+- postal_code: country_code, postal_code, place_name, admin1_name/code, admin2_name/code, admin3_name/code, lat, lon, accuracy, precision ("full" or "partial"), source. No geoname_id. One postal code can serve many places. `partial` countries (CL, CN, IE, MT, AR, BR) only have the first characters of a code; never treat a partial row as a complete code. Thailand has no postal file: use farzai/thailand-address.
+- alternate_name: geoname_id, lang, name, preferred, short, colloquial, historic.
+- `names` is {bcp47: name}; the name per language is the preferred one, or else the first current name that is not historic, not colloquial and has no end date. Pseudo-language codes (post, iata, wkdt, link) are never keys.
+- status: active or abolished (with abolished_on and replaced_by). Abolished rows are hidden unless `Geonames::withAbolished()` is used.
+
+## Install and fetch
+```
+composer require farzai/geonames
+vendor/bin/geonames fetch TH US --datasets=admin1,admin2,cities
+vendor/bin/geonames fetch GB --datasets=cities,postal_codes
+vendor/bin/geonames fetch TH --sqlite
+vendor/bin/geonames fetch TH --datasets=all --snapshot=latest
+```
+Options: `--datasets=` admin1, admin2, cities, alternate_names, postal_codes or all (default admin1,admin2,cities); `--sqlite`; `--snapshot=<id>|latest` (default: the snapshot pinned in data/snapshot.json); `--path=DIR` (default $GEONAMES_PATH or ~/.cache/farzai-geonames). Laravel: `php artisan geonames:fetch` with the same options.
+Verification: manifest sha256 equals the pin (or latest.json); each file's sha256 and size equal the manifest; written via `.part` and renamed. Country codes must match ^[A-Z]{2}$. A snapshot withdrawn in snapshots.json is refused.
+Bundled with the package: countries.json, kinds.json, time_zones.json, schema.json and the pin.
+
+## API (Farzai\Geonames\Geonames, a static facade over GeonamesRepository)
+countries(); country(string|int $code) (iso2, iso3 or numeric); countryOrFail(); admin1(string $country); admin1Code($country, $code); admin2($country, ?$admin1); cities($country, ?$admin1, ?int $minPopulation); city(int $geonameId, ?$country) (fetched countries only); postalCodes($country, ?$code); search($term, ?$country, $limit); nearest($lat, $lon, $country, $limit) (needs SQLite file and pdo_sqlite; results carry distance_km); timeZones(?$country); kinds(); withAbolished(); swap(?GeonamesRepository) for tests; GeonamesRepository::fromArrays(...) as a fake.
+Models are read-only: Country, Admin1, Admin2, City, PostalCode. Accessors: name($lang, $fallback=true), nameTh, nameEn, names(), geonameId(), kind(), toArray() (snake_case snapshot fields).
+Exceptions (all extend GeonamesException): NotFoundException, NotFetchedException (names the fetch command), PostalCodesElsewhereException (Thailand), IntegrityException, SnapshotException, UnsupportedSchemaException.
+
+## Laravel
+Auto-discovered provider and `Geonames` facade alias. Config: geonames.path (GEONAMES_PATH), geonames.snapshot (GEONAMES_SNAPSHOT), geonames.base_url, geonames.tables.
+Rules: geonames_country; geonames_admin1:country_field; geonames_city:country_field; geonames_postal_code:country_field (->mustExist()). Rule objects: Rule::geonamesCountry(), geonamesAdmin1(), geonamesCity(), geonamesPostalCode() with ->forCountryField('field'). One error per mistake: an empty or invalid parent passes the child's check. Missing data is a failed check naming `geonames:fetch`.
+Casts: AsCountry (stores ISO alpha-2), AsAdmin1 (stores "TH.50"), AsCity (stores geoname_id). Unknown code on set throws NotFoundException; on read gives null; blank clears.
+Migrations and seeder: `php artisan vendor:publish --tag=geonames-migrations`, `php artisan migrate`, `php artisan geonames:seed TH US --datasets=countries,admin1,admin2,cities,postal_codes,alternate_names`. Rows with a geoname_id are upserted on it; postal rows on (country_code, postal_code, place_name, admin1_code, admin2_code, admin3_code) with unknown codes stored as ''; alternate names are replaced per country in one transaction. Abolished rows are kept.
+
+## Licences and credits
+GeoNames gazetteer and postal codes: CC BY 4.0 (the postal readme links the CC BY 3.0 URL; recorded in the manifest). Attribution to show: "Data from GeoNames (geonames.org), licensed under CC BY 4.0", linked, with changes marked: converted to JSON, NDJSON and SQLite; limited to places with population >= 500 or an administrative seat; names selected by language; coordinates rounded to five decimals; kinds and population tiers added. Great Britain full postal codes: "Contains Royal Mail data (c) Royal Mail copyright and database right 2022. Source: Office for National Statistics licensed under the Open Government Licence v.3.0." The data is provided as is, without warranty. The package code is MIT.
