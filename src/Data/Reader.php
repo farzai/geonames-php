@@ -17,6 +17,8 @@ final class Reader
 {
     public const SUPPORTED_SCHEMA_MAJOR = 1;
 
+    public const MAX_LINE_BYTES = 4 * 1024 * 1024;
+
     /**
      * @return list<array<string, mixed>>
      */
@@ -43,14 +45,14 @@ final class Reader
         }
 
         try {
-            $header = gzgets($handle);
+            $header = self::line($handle, $path);
             $head = $header === false ? null : json_decode($header, true);
             if (! is_array($head) || ! isset($head['schema_version'])) {
                 throw new GeonamesException(sprintf('%s has no NDJSON header line.', $path));
             }
             self::assertSchema((string) $head['schema_version']);
 
-            while (($line = gzgets($handle)) !== false) {
+            while (($line = self::line($handle, $path)) !== false) {
                 $line = trim($line);
                 if ($line === '') {
                     continue;
@@ -63,6 +65,21 @@ final class Reader
         } finally {
             gzclose($handle);
         }
+    }
+
+    /**
+     * One line, at most MAX_LINE_BYTES, so a crafted file cannot inflate a single line without end.
+     *
+     * @param  resource  $handle
+     */
+    private static function line($handle, string $path): string|false
+    {
+        $line = gzgets($handle, self::MAX_LINE_BYTES);
+        if ($line !== false && strlen($line) >= self::MAX_LINE_BYTES - 1 && ! str_ends_with($line, "\n")) {
+            throw new GeonamesException(sprintf('%s has a line longer than %d bytes.', $path, self::MAX_LINE_BYTES));
+        }
+
+        return $line;
     }
 
     private static function assertSchema(string $version): void

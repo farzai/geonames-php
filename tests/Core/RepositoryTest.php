@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Farzai\Geonames\Data\Reader;
+use Farzai\Geonames\Exceptions\GeonamesException;
 use Farzai\Geonames\Exceptions\NotFetchedException;
 use Farzai\Geonames\Exceptions\NotFoundException;
 use Farzai\Geonames\Exceptions\PostalCodesElsewhereException;
@@ -182,4 +184,12 @@ it('works over arrays as a test fake, through the static facade', function () {
     } finally {
         Geonames::swap(null);
     }
+});
+
+it('refuses a file with a line longer than the cap', function () {
+    $path = $this->temporaryDirectory().'/long.ndjson.gz';
+    file_put_contents($path, gzencode('{"schema_version":"1.0"}'."\n".str_repeat('a', Reader::MAX_LINE_BYTES + 10)."\n"));
+
+    expect(fn () => iterator_to_array(Reader::ndjson($path)))
+        ->toThrow(GeonamesException::class, 'longer than');
 });
