@@ -108,6 +108,11 @@ Geonames::timeZones('TH');                      // ['Asia/Bangkok']
   `partial`: for CL, CN, IE, MT, AR and BR only the first characters of a code are known,
   so never treat a `partial` row as a complete code. GB and NL include full unit codes;
   Canada has the forward sortation area only.
+- **Large countries.** `postalCodes('GB')` with no code builds every row as a model
+  (about 1.8 million for GB) and holds them all in memory, and `city($id)` without a
+  country scans every fetched country file until it finds the id. Pass the country to
+  `city()`, ask `postalCodes()` for one code, and for bulk reads seed the database
+  (`geonames:seed`, see Migrations and seeder) and query the tables instead.
 - **Nearest** reads the country's SQLite file through its R*Tree and is exact: the
   search box doubles until the answer cannot change. It needs `pdo_sqlite` and the file
   (`fetch TH --sqlite`), and is limited to one country.
