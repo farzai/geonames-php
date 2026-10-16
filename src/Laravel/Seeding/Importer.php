@@ -181,14 +181,14 @@ final class Importer
      */
     private function dropRepeatedRows(string $table, string $country): int
     {
-        $grammar = $this->db->getQueryGrammar();
+        $grammar = $this->db->table($table)->getGrammar();
         $partition = implode(', ', array_map(
             static fn (string $column): string => $grammar->wrap($column),
             array_keys($this->postalRow(['country_code' => $country, 'postal_code' => '', 'place_name' => '']))
         ));
         $numbered = $this->db->table($table)->where('country_code', $country)
             ->selectRaw(sprintf('%s as id, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) as rn', $grammar->wrap('id'), $partition, $grammar->wrap('id')));
-        $repeats = $this->db->query()->fromSub($numbered, 'd')->where('rn', '>', 1)->select('id');
+        $repeats = $numbered->newQuery()->fromSub($numbered, 'd')->where('rn', '>', 1)->select('id');
 
         return $this->db->table($table)->where('country_code', $country)
             ->whereIn('id', $repeats)
