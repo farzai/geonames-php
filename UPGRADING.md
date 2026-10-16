@@ -74,5 +74,5 @@ until you publish and migrate.
 - The 2.1 call `GazetteerConverter::convert($zip, $out, $adminDir)` silently lost admin names
   once the third argument was dropped. There is no converter now.
 - The gazetteer MongoDB import could double every record on a re-run, and the postal import
-  rejected about 41% of rows on its unique index. The seeder upserts on the keys the data
-  supports.
+  rejected about 41% of rows on its unique index. The seeder upserts on `geoname_id` where
+  there is one and replaces postal codes and alternate names per country.

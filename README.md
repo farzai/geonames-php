@@ -166,7 +166,10 @@ String rules do the same: `geonames_country`, `geonames_admin1:country`, `geonam
 - **Data not fetched** is a failed check whose message names `geonames:fetch`, never an
   exception out of validation.
 - **`mustExist()` and partial countries.** A code in CL, CN, IE, MT, AR or BR matches when it
-  starts with a listed prefix. For Thailand the message points to `farzai/thailand-address`.
+  starts with a listed prefix. CN, CL and BR list codes zero-padded to full length (CN
+  `230000`, BR `69945-000`); the padding is not part of the prefix, so `231199` passes when
+  `231100` is listed. Spaces and case are ignored (GB `SW1A 1AA`). The file is streamed and
+  the check stops at the first match. For Thailand the message points to `farzai/thailand-address`.
 - Messages come in English and Thai (`geonames::validation`). Publish them with
   `php artisan vendor:publish --tag=geonames-lang`.
 
@@ -206,10 +209,11 @@ Tables: `geonames_countries`, `geonames_admin1`, `geonames_admin2`, `geonames_ci
 `config/geonames.php`; publish it with `--tag=geonames-config`).
 
 - **Keys.** Rows with a `geoname_id` use it as the primary key and are upserted on it, so a
-  re-run changes nothing. Postal rows are unique on country, code, place name and the
-  three admin codes (unknown codes stored as `''`), never on country and code alone.
-  Alternate names have no id of their own, so they are replaced per country in one
-  transaction.
+  re-run changes nothing. Postal codes and alternate names have no id of their own, so
+  they are replaced per country in one transaction: a code removed from a later snapshot
+  goes too. The postal file repeats a few rows byte for byte (JP, CH, IN, FR); each is
+  written once and the seeder says how many it skipped. Admin `geonames_code` is an
+  index, not a unique key, because an abolished row and its replacement share a code.
 - **Abolished rows** are kept, with `status = abolished`.
 - `GeonamesSeeder` (publish with `--tag=geonames-seeder`) does the same from `db:seed`.
 - Add columns only through new migrations of your own.
@@ -219,7 +223,7 @@ Tables: `geonames_countries`, `geonames_admin1`, `geonames_admin2`, `geonames_ci
 | Key | Env | Default |
 |---|---|---|
 | `geonames.path` | `GEONAMES_PATH` | `storage/app/geonames` |
-| `geonames.snapshot` | `GEONAMES_SNAPSHOT` | `null`: the snapshot this release is pinned to |
+| `geonames.snapshot` | `GEONAMES_SNAPSHOT` | `null`: the snapshot this release is pinned to. `fetch --snapshot=latest` downloads that snapshot, but reads stay on the pin until you set this |
 | `geonames.base_url` | `GEONAMES_BASE_URL` | `https://data.farzai.com/geonames/v1` |
 
 ## What is in the data
