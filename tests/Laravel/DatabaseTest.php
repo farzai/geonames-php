@@ -156,3 +156,24 @@ it('fetches through the artisan command, with the fixture served by the fake tra
 
     $this->artisan('geonames:fetch', ['countries' => ['../x']])->expectsOutputToContain('alpha-2')->assertFailed();
 });
+
+it('removes repeated postal rows in the database, however far apart they are', function () {
+    $row = fn (int $i) => ['country_code' => 'GB', 'postal_code' => 'AB'.$i, 'place_name' => 'Place '.$i, 'admin1_code' => null, 'lat' => 51.5, 'lon' => -0.1, 'precision' => 'full'];
+    $rows = array_map($row, range(1, 3000));
+    $rows[] = $row(1);       // far from its twin
+    $rows[] = $row(2999);
+    $rows[] = $row(2999);
+    $rows[] = $row(7);
+    $rows[] = ['lat' => 52.0] + $row(7); // differs in a column: kept
+
+    $importer = new Importer(
+        GeonamesRepository::fromArrays(postalCodes: ['GB' => $rows]),
+        DB::connection(),
+        config('geonames.tables'),
+    );
+    $counts = $importer->import(['GB'], ['postal_codes']);
+
+    expect(DB::table('geonames_postal_codes')->where('country_code', 'GB')->count())->toBe(3001)
+        ->and($counts['postal_codes'])->toBe(3001)
+        ->and($importer->duplicatesDropped)->toBe(4);
+});

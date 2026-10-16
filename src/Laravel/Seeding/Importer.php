@@ -12,7 +12,8 @@ use Illuminate\Database\ConnectionInterface;
  * and in chunks. Re-running is safe: rows with a geoname_id are upserted on it; postal
  * codes and alternate names (which have no id of their own) are replaced per country
  * inside one transaction, so a code removed from a later snapshot goes too. Postal rows
- * that repeat byte for byte are written once and counted in `$duplicatesDropped`.
+ * that repeat in every column are deleted after the insert, keeping the first, and counted
+ * in `$duplicatesDropped`.
  * Abolished rows are kept with their status.
  */
 final class Importer
@@ -22,7 +23,7 @@ final class Importer
     /** Bind parameters allowed in one statement; the lowest limit among the supported databases (SQL Server: 2100). */
     private const MAX_BINDINGS = 2000;
 
-    /** Postal rows skipped because an identical row was already written, over all imports of this instance. */
+    /** Identical postal rows deleted after the insert, over all imports of this instance. */
     public int $duplicatesDropped = 0;
 
     /**
@@ -153,27 +154,38 @@ final class Importer
 
         $this->db->transaction(function () use ($country, $table, &$written): void {
             $this->db->table($table)->where('country_code', $country)->delete();
-            $seen = [];
             $buffer = [];
             foreach ($this->repository->rawRows('postal_codes', $country) as $row) {
-                $row = $this->postalRow($row);
-                $hash = substr(md5(json_encode($row, JSON_UNESCAPED_UNICODE), true), 0, 12);
-                if (isset($seen[$hash])) {
-                    $this->duplicatesDropped++;
-
-                    continue;
-                }
-                $seen[$hash] = true;
-                $buffer[] = $row;
+                $buffer[] = $this->postalRow($row);
                 if (count($buffer) >= self::CHUNK) {
                     $written += $this->insert($table, $buffer);
                     $buffer = [];
                 }
             }
             $written += $this->insert($table, $buffer);
+            $dropped = $this->dropRepeatedRows($table, $country);
+            $written -= $dropped;
+            $this->duplicatesDropped += $dropped;
         });
 
         return $written;
+    }
+
+    /**
+     * Keeps the first of each group of rows that are equal in every value column. Done in
+     * the database so no per-row state is held in PHP (GB has 1.8 million rows); the
+     * derived table lets MySQL delete from the table it selects from.
+     */
+    private function dropRepeatedRows(string $table, string $country): int
+    {
+        $columns = array_keys($this->postalRow([
+            'country_code' => $country, 'postal_code' => '', 'place_name' => '',
+        ]));
+        $keep = $this->db->table($table)->where('country_code', $country)->groupBy($columns)->selectRaw('MIN(id) as keep_id');
+
+        return $this->db->table($table)->where('country_code', $country)
+            ->whereNotIn('id', fn ($query) => $query->fromSub($keep, 'k')->select('keep_id'))
+            ->delete();
     }
 
     private function alternateNames(string $country): int

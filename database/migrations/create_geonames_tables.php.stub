@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 /*
  * Tables for the GeoNames seeder. Keys follow the snapshot: geoname_id is the primary key
- * wherever the rows have one; postal rows have none, so they are unique on the place and
- * its admin codes, with unknown codes stored as '' (never on country + postal code alone:
- * one code serves many places). Add columns only through new migrations.
+ * wherever the rows have one; postal rows have none, so the seeder replaces them per
+ * country and keeps the first of identical rows (one code serves many places, so there
+ * is no unique key on the code). Add columns only through new migrations.
  */
 return new class extends Migration
 {
