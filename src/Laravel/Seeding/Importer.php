@@ -173,18 +173,25 @@ final class Importer
 
     /**
      * Keeps the first of each group of rows that are equal in every value column. Done in
-     * the database so no per-row state is held in PHP (GB has 1.8 million rows); the
-     * derived table lets MySQL delete from the table it selects from.
+     * the database so no per-row state is held in PHP (GB has 1.8 million rows). A window
+     * function numbers each group and the delete takes the numbered-over-one ids; the
+     * NOT IN (SELECT MIN(id) ... GROUP BY) form degrades to a non-hashed subplan on
+     * Postgres at this size. The derived table lets MySQL delete from the table it selects
+     * from. Needs MySQL 8, MariaDB 10.2, SQLite 3.25 or Postgres (any supported version).
      */
     private function dropRepeatedRows(string $table, string $country): int
     {
-        $columns = array_keys($this->postalRow([
-            'country_code' => $country, 'postal_code' => '', 'place_name' => '',
-        ]));
-        $keep = $this->db->table($table)->where('country_code', $country)->groupBy($columns)->selectRaw('MIN(id) as keep_id');
+        $grammar = $this->db->getQueryGrammar();
+        $partition = implode(', ', array_map(
+            static fn (string $column): string => $grammar->wrap($column),
+            array_keys($this->postalRow(['country_code' => $country, 'postal_code' => '', 'place_name' => '']))
+        ));
+        $numbered = $this->db->table($table)->where('country_code', $country)
+            ->selectRaw(sprintf('%s as id, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) as rn', $grammar->wrap('id'), $partition, $grammar->wrap('id')));
+        $repeats = $this->db->query()->fromSub($numbered, 'd')->where('rn', '>', 1)->select('id');
 
         return $this->db->table($table)->where('country_code', $country)
-            ->whereNotIn('id', fn ($query) => $query->fromSub($keep, 'k')->select('keep_id'))
+            ->whereIn('id', $repeats)
             ->delete();
     }
 
