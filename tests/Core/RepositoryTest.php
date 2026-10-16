@@ -130,7 +130,7 @@ it('returns every postal row of a code, with its precision', function () {
         ->and($geonames->postalCodes('us'))->toHaveCount(2)
         ->and($geonames->postalCodes('US', '00000'))->toHaveCount(0);
 
-    $cn = $geonames->postalCodes('CN', '10');
+    $cn = $geonames->postalCodes('CN', '100000');
     expect($cn)->toHaveCount(1)
         ->and($cn->first()?->precision())->toBe('partial')
         ->and($cn->first()?->isFull())->toBeFalse();

@@ -2,16 +2,7 @@
     "name": "farzai/geonames",
     "type": "library",
     "description": "GeoNames countries, administrative divisions, cities and postal codes from verified Farzai snapshots. Plain PHP, with first-class Laravel support.",
-    "keywords": [
-        "geonames",
-        "countries",
-        "cities",
-        "postal-code",
-        "geocoding",
-        "iso-3166",
-        "laravel",
-        "validation"
-    ],
+    "keywords": ["geonames", "countries", "cities", "postal-code", "geocoding", "iso-3166", "laravel", "validation"],
     "homepage": "https://github.com/farzai/geonames-php",
     "license": "MIT",
     "authors": [
@@ -37,9 +28,7 @@
         "ext-pdo_sqlite": "Reads the per-country SQLite files (nearest-city lookups).",
         "laravel/framework": "Service provider, facade, validation rules, Eloquent casts, migrations and seeder are discovered automatically"
     },
-    "bin": [
-        "bin/geonames"
-    ],
+    "bin": ["bin/geonames"],
     "autoload": {
         "psr-4": {
             "Farzai\\Geonames\\": "src/"
@@ -48,6 +37,16 @@
     "autoload-dev": {
         "psr-4": {
             "Farzai\\Geonames\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Farzai\\Geonames\\Laravel\\GeonamesServiceProvider"
+            ],
+            "aliases": {
+                "Geonames": "Farzai\\Geonames\\Laravel\\Facades\\Geonames"
+            }
         }
     },
     "scripts": {

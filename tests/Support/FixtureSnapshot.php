@@ -105,7 +105,9 @@ final class FixtureSnapshot
             ['geoname_id' => 5368361, 'lang' => 'th', 'name' => 'ลอสแอนเจลิส', 'preferred' => true, 'short' => false, 'colloquial' => false, 'historic' => false],
         ]);
         $this->files['by-country/CN/postal_codes.ndjson.gz'] = $ndjson('postal_codes', [
-            $this->postal('CN', '10', 'Beijing', 'Beijing', '22', null, null, 39.9, 116.4, 'partial'),
+            $this->postal('CN', '100000', 'Beijing', 'Beijing', '22', null, null, 39.9, 116.4, 'partial'),
+            $this->postal('CN', '231100', 'Hefei', 'Anhui', '01', null, null, 31.8, 117.2, 'partial'),
+            $this->postal('CN', '231100', 'Hefei', 'Anhui', '01', null, null, 31.8, 117.2, 'partial'),
         ]);
 
         $this->files['sqlite/TH.sqlite'] = $this->sqlite('TH', [
@@ -196,7 +198,7 @@ final class FixtureSnapshot
             'country_code' => $cc, 'admin1_code' => $a1, 'admin2_code' => $a2, 'admin1_geoname_id' => null, 'admin2_geoname_id' => null, 'population' => $pop,
             'population_tier' => $tier, 'elevation_m' => null, 'dem_m' => 10, 'time_zone' => $tz, 'source' => ['dataset' => 'geonames', 'modified' => '2026-01-01']] + $this->history();
         if ($quirk === 'unknown_kind') {
-            $row['kind'] = 'brand_new_kind_from_a_later_minor';
+            $row['kind'] = 'new_kind_from_a_later_minor';
         }
         if ($quirk === 'status_gone') {
             $row['status'] = 'abolished';
