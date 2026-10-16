@@ -37,6 +37,9 @@
         "ext-pdo_sqlite": "Reads the per-country SQLite files (nearest-city lookups).",
         "laravel/framework": "Service provider, facade, validation rules, Eloquent casts, migrations and seeder are discovered automatically"
     },
+    "bin": [
+        "bin/geonames"
+    ],
     "autoload": {
         "psr-4": {
             "Farzai\\Geonames\\": "src/"

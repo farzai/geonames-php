@@ -1,0 +1,15 @@
+{
+    "snapshot": "2026-10-16.1",
+    "manifest_sha256": "4e8bc0f5e35aa5e54ec57c4007bd7582bbbb0e470ef94517f78af73a20f54627",
+    "schema_version": "1.0.0",
+    "files": {
+        "countries.json": "7803a5611b65d128e2445ab97242c112b49d499bf55543586453418840ef9ea1",
+        "kinds.json": "1742b6ee24f08abd9ad14db65c83cb69c1c55a50d9764250dbb391379973bb35",
+        "time_zones.json": "d0d574903436e5a0e2a277e4d2e695654287ac1be962b7f13512bf84fb5a21dc",
+        "schema.json": "f22188b5d9aa5459f5b9957f14219c47f6a508a31fdd24c9333ed32ca194acc4"
+    },
+    "credits": [
+        "Contains Royal Mail data © Royal Mail copyright and database right 2022. Source: Office for National Statistics licensed under the Open Government Licence v.3.0."
+    ],
+    "attribution": "Data from GeoNames (geonames.org), licensed under CC BY 4.0"
+}

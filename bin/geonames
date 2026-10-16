@@ -1,0 +1,26 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Farzai\Geonames\Console\Cli;
+
+// From a clone the autoloader is the package's own vendor directory; installed as a
+// dependency, Composer's bin proxy names the project's autoloader itself.
+foreach (array_filter([
+    $GLOBALS['_composer_autoload_path'] ?? null,
+    __DIR__.'/../vendor/autoload.php',
+    __DIR__.'/../../../autoload.php',
+]) as $autoloader) {
+    if (is_file($autoloader)) {
+        require $autoloader;
+        break;
+    }
+}
+
+if (! class_exists(Cli::class)) {
+    fwrite(STDERR, "geonames: could not find Composer's autoloader; run composer install.\n");
+    exit(1);
+}
+
+exit((new Cli)->run(array_slice($argv, 1)));
