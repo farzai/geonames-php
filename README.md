@@ -211,8 +211,10 @@ Tables: `geonames_countries`, `geonames_admin1`, `geonames_admin2`, `geonames_ci
 - **Keys.** Rows with a `geoname_id` use it as the primary key and are upserted on it, so a
   re-run changes nothing. Postal codes and alternate names have no id of their own, so
   they are replaced per country in one transaction: a code removed from a later snapshot
-  goes too. The postal file repeats a few rows byte for byte (JP, CH, IN, FR); each is
-  written once and the seeder says how many it skipped. Admin `geonames_code` is an
+  goes too. The postal file repeats a few rows byte for byte (JP, CH, IN, FR); after the
+  insert the database deletes each repeat, keeping the first, and the seeder says how many
+  it removed. This uses a window function, so the seeder needs MySQL 8, MariaDB 10.2,
+  SQLite 3.25 or Postgres. Admin `geonames_code` is an
   index, not a unique key, because an abolished row and its replacement share a code.
 - **Abolished rows** are kept, with `status = abolished`.
 - `GeonamesSeeder` (publish with `--tag=geonames-seeder`) does the same from `db:seed`.
