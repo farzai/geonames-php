@@ -1,0 +1,1430 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://data.farzai.com/geonames/v1/2026-10-16.1/schema.json",
+  "title": "GeoNames dataset, schema v1",
+  "description": "Data from GeoNames (geonames.org), licensed under CC BY 4.0. Rows follow the conventions shared with thailand-address v1: stable integer ids, nullable means unknown, names by BCP 47 tag, WGS84 coordinates, a readable kind with the original feature class and code kept, and the envelope {schema_version, snapshot, data}. Consumers ignore unknown fields and unknown enum values.",
+  "$defs": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": [
+        "1.0.0"
+      ]
+    },
+    "snapshot_id": {
+      "description": "YYYY-MM-DD, with a .n suffix for a second build of a day. Ids are never reused.",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}(\\.[1-9]\\d*)?$",
+      "examples": [
+        "2026-11-01"
+      ]
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "nullable_date": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/date"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "country_code": {
+      "description": "ISO 3166-1 alpha-2.",
+      "type": "string",
+      "pattern": "^[A-Z]{2}$"
+    },
+    "geoname_id": {
+      "description": "GeoNames' stable integer id. Never reused: a deleted place stays as an abolished row.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "wikidata_id": {
+      "description": "The Wikidata Q-number GeoNames links, null when it links none.",
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^Q[1-9]\\d*$"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "examples": [
+        "Q1861",
+        null
+      ]
+    },
+    "names": {
+      "description": "Names by BCP 47 language tag. Only the languages the pipeline selected (th, en) appear, the preferred name of each, or when a language has no preferred name the first current name that is not historic, not colloquial and has no end date (so a name is not always a preferred one); every other language is in the per-country alternate_names file. Consumers ignore tags they do not know. Pseudo-language codes (post, iata, wkdt, link) are never keys.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "latitude": {
+      "description": "WGS84, five decimals.",
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "longitude": {
+      "description": "WGS84, five decimals.",
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
+    },
+    "source": {
+      "description": "Where the row comes from. modified is GeoNames' own modification date for the place, which is how a diff detects edits cheaply; null where GeoNames gives none (countries and admin code tables).",
+      "type": "object",
+      "properties": {
+        "dataset": {
+          "const": "geonames"
+        },
+        "modified": {
+          "$ref": "#/$defs/nullable_date"
+        }
+      },
+      "required": [
+        "dataset",
+        "modified"
+      ]
+    },
+    "kind": {
+      "description": "Readable enum mapped from the GeoNames feature class and code by kinds.json. A consumer must treat a kind it does not know as 'other'; more may be added in v1.",
+      "type": "string",
+      "enum": [
+        "country",
+        "admin1",
+        "admin2",
+        "admin3",
+        "admin4",
+        "city",
+        "capital",
+        "seat",
+        "locality",
+        "other"
+      ]
+    },
+    "history": {
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "abolished"
+          ]
+        },
+        "abolished_on": {
+          "description": "The date of the GeoNames deletes file the id appeared in; null for an active place.",
+          "$ref": "#/$defs/nullable_date"
+        },
+        "replaced_by": {
+          "description": "Active ids that took the place over, found by same name and feature class within about 1 km; null when unknown or not applicable (never a guess).",
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/geoname_id"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "abolished_on",
+        "replaced_by"
+      ]
+    },
+    "country": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/history"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "geoname_id": {
+          "$ref": "#/$defs/geoname_id"
+        },
+        "iso2": {
+          "$ref": "#/$defs/country_code"
+        },
+        "iso3": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "iso_numeric": {
+          "description": "ISO 3166-1 numeric; null for a country with none (Kosovo, XK, is user-assigned and GeoNames lists 0).",
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{3}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fips": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "names": {
+          "$ref": "#/$defs/names"
+        },
+        "wikidata_id": {
+          "$ref": "#/$defs/wikidata_id"
+        },
+        "kind": {
+          "const": "country"
+        },
+        "capital": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "continent": {
+          "type": "string",
+          "pattern": "^(AF|AN|AS|EU|NA|OC|SA)$"
+        },
+        "area_sq_km": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "population": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "currency": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "code",
+                "name"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "calling_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tld": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "languages": {
+          "description": "BCP 47 tags, as GeoNames lists them.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "neighbours": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/country_code"
+          }
+        },
+        "time_zones": {
+          "description": "IANA names only; offsets are derived from the name and date, never stored.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "postal_code_format": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "postal_code_regex": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
+      },
+      "required": [
+        "geoname_id",
+        "iso2",
+        "iso3",
+        "iso_numeric",
+        "fips",
+        "name",
+        "names",
+        "wikidata_id",
+        "kind",
+        "capital",
+        "continent",
+        "area_sq_km",
+        "population",
+        "currency",
+        "calling_code",
+        "tld",
+        "languages",
+        "neighbours",
+        "time_zones",
+        "postal_code_format",
+        "postal_code_regex",
+        "source"
+      ]
+    },
+    "admin1": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/history"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "geoname_id": {
+          "$ref": "#/$defs/geoname_id"
+        },
+        "geonames_code": {
+          "description": "The GeoNames code, e.g. TH.40. The key of an admin row together with geoname_id. GeoNames admin codes are FIPS for some countries and ISO for others, so ISO 3166-2 is never a key.",
+          "type": "string",
+          "pattern": "^[A-Z]{2}(\\.[A-Za-z0-9_\\-]+){1}$"
+        },
+        "country_code": {
+          "$ref": "#/$defs/country_code"
+        },
+        "admin1_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ascii_name": {
+          "type": "string"
+        },
+        "names": {
+          "$ref": "#/$defs/names"
+        },
+        "wikidata_id": {
+          "$ref": "#/$defs/wikidata_id"
+        },
+        "kind": {
+          "const": "admin1"
+        },
+        "feature_class": {
+          "const": "A"
+        },
+        "feature_code": {
+          "const": "ADM1"
+        },
+        "iso_3166_2": {
+          "description": "Nullable attribute, null in v1: GeoNames has no sound source for it. Never use it as a join key.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
+      },
+      "required": [
+        "geoname_id",
+        "geonames_code",
+        "country_code",
+        "admin1_code",
+        "name",
+        "ascii_name",
+        "names",
+        "wikidata_id",
+        "kind",
+        "feature_class",
+        "feature_code",
+        "iso_3166_2",
+        "source"
+      ]
+    },
+    "admin2": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/history"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "geoname_id": {
+          "$ref": "#/$defs/geoname_id"
+        },
+        "geonames_code": {
+          "description": "The GeoNames code, e.g. TH.40. The key of an admin row together with geoname_id. GeoNames admin codes are FIPS for some countries and ISO for others, so ISO 3166-2 is never a key.",
+          "type": "string",
+          "pattern": "^[A-Z]{2}(\\.[A-Za-z0-9_\\-]+){2}$"
+        },
+        "country_code": {
+          "$ref": "#/$defs/country_code"
+        },
+        "admin1_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "admin2_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "admin1_geoname_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/geoname_id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ascii_name": {
+          "type": "string"
+        },
+        "names": {
+          "$ref": "#/$defs/names"
+        },
+        "wikidata_id": {
+          "$ref": "#/$defs/wikidata_id"
+        },
+        "kind": {
+          "const": "admin2"
+        },
+        "feature_class": {
+          "const": "A"
+        },
+        "feature_code": {
+          "const": "ADM2"
+        },
+        "iso_3166_2": {
+          "description": "Nullable attribute, null in v1: GeoNames has no sound source for it. Never use it as a join key.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
+      },
+      "required": [
+        "geoname_id",
+        "geonames_code",
+        "country_code",
+        "admin1_code",
+        "admin2_code",
+        "admin1_geoname_id",
+        "name",
+        "ascii_name",
+        "names",
+        "wikidata_id",
+        "kind",
+        "feature_class",
+        "feature_code",
+        "iso_3166_2",
+        "source"
+      ]
+    },
+    "city": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/history"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "geoname_id": {
+          "$ref": "#/$defs/geoname_id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ascii_name": {
+          "type": "string"
+        },
+        "names": {
+          "$ref": "#/$defs/names"
+        },
+        "wikidata_id": {
+          "$ref": "#/$defs/wikidata_id"
+        },
+        "lat": {
+          "$ref": "#/$defs/latitude"
+        },
+        "lon": {
+          "$ref": "#/$defs/longitude"
+        },
+        "kind": {
+          "$ref": "#/$defs/kind"
+        },
+        "feature_class": {
+          "type": "string",
+          "pattern": "^[A-Z]$"
+        },
+        "feature_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "is_capital": {
+          "type": "boolean"
+        },
+        "admin_seat_level": {
+          "description": "0 for a capital or seat of government, 1 to 5 for the seat of an admin division of that level, null for any other place.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 5
+        },
+        "country_code": {
+          "$ref": "#/$defs/country_code"
+        },
+        "admin1_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "admin2_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "admin1_geoname_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/geoname_id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "admin2_geoname_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/geoname_id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "population": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "population_tier": {
+          "description": "The largest of 15000, 5000, 1000, 500 the population reaches (so 15000 means 15,000 or more); null below 500 (a seat kept by the extract).",
+          "oneOf": [
+            {
+              "type": "integer",
+              "enum": [
+                15000,
+                5000,
+                1000,
+                500
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "elevation_m": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "dem_m": {
+          "description": "Digital elevation model, metres; null where GeoNames has no data (-9999).",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "time_zone": {
+          "description": "IANA name.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        }
+      },
+      "required": [
+        "geoname_id",
+        "name",
+        "ascii_name",
+        "names",
+        "wikidata_id",
+        "lat",
+        "lon",
+        "kind",
+        "feature_class",
+        "feature_code",
+        "is_capital",
+        "admin_seat_level",
+        "country_code",
+        "admin1_code",
+        "admin2_code",
+        "admin1_geoname_id",
+        "admin2_geoname_id",
+        "population",
+        "population_tier",
+        "elevation_m",
+        "dem_m",
+        "time_zone",
+        "source"
+      ]
+    },
+    "postal_code": {
+      "type": "object",
+      "properties": {
+        "country_code": {
+          "$ref": "#/$defs/country_code"
+        },
+        "postal_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "place_name": {
+          "type": "string"
+        },
+        "admin1_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "admin1_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "admin2_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "admin2_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "admin3_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "admin3_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lat": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/latitude"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lon": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/longitude"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accuracy": {
+          "description": "GeoNames' accuracy of the coordinates: 1 estimated, 4 geonameid, 6 centroid of addresses or shape.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 6
+        },
+        "precision": {
+          "description": "full: the whole postal code. partial: cut, so a consumer must not treat it as a complete code (first characters only for CL, CN, IE, MT; major codes only for BR; outward codes only for GB, CA, NL).",
+          "type": "string",
+          "enum": [
+            "full",
+            "partial"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "geonames",
+            "geonames_full"
+          ]
+        }
+      },
+      "required": [
+        "country_code",
+        "postal_code",
+        "place_name",
+        "admin1_name",
+        "admin1_code",
+        "admin2_name",
+        "admin2_code",
+        "admin3_name",
+        "admin3_code",
+        "lat",
+        "lon",
+        "accuracy",
+        "precision",
+        "source"
+      ]
+    },
+    "time_zone": {
+      "type": "object",
+      "properties": {
+        "country_code": {
+          "$ref": "#/$defs/country_code"
+        },
+        "time_zone": {
+          "description": "IANA name.",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "country_code",
+        "time_zone"
+      ]
+    },
+    "kind_entry": {
+      "type": "object",
+      "properties": {
+        "feature_class": {
+          "type": "string",
+          "pattern": "^[A-Z]$"
+        },
+        "feature_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "$ref": "#/$defs/kind"
+        },
+        "admin_seat_level": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 5
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "feature_class",
+        "feature_code",
+        "kind",
+        "admin_seat_level",
+        "name",
+        "description"
+      ]
+    },
+    "change": {
+      "type": "object",
+      "properties": {
+        "dataset": {
+          "type": "string",
+          "enum": [
+            "countries",
+            "admin1",
+            "admin2",
+            "cities"
+          ]
+        },
+        "geoname_id": {
+          "$ref": "#/$defs/geoname_id"
+        },
+        "change": {
+          "type": "string",
+          "enum": [
+            "added",
+            "modified",
+            "abolished",
+            "reactivated",
+            "left_scope",
+            "sqlite_postal_omitted"
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "dataset",
+        "geoname_id",
+        "change",
+        "fields"
+      ]
+    },
+    "envelope": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/schema_version"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/snapshot_id"
+        },
+        "data": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "snapshot",
+        "data"
+      ]
+    },
+    "countries_file": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/country"
+          }
+        }
+      }
+    },
+    "admin1_file": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/admin1"
+          }
+        }
+      }
+    },
+    "time_zones_file": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/time_zone"
+          }
+        }
+      }
+    },
+    "kinds_file": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/kind_entry"
+          }
+        }
+      }
+    },
+    "changes_file": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/change"
+          }
+        }
+      }
+    },
+    "ndjson_header": {
+      "description": "The first line of every NDJSON.gz file; every following line is one row of the named dataset. Row counts are in manifest.json.",
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/schema_version"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/snapshot_id"
+        },
+        "dataset": {
+          "type": "string",
+          "enum": [
+            "admin2",
+            "cities",
+            "postal_codes",
+            "alternate_names"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "snapshot",
+        "dataset"
+      ]
+    },
+    "alternate_name": {
+      "type": "object",
+      "properties": {
+        "geoname_id": {
+          "$ref": "#/$defs/geoname_id"
+        },
+        "lang": {
+          "type": "string",
+          "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preferred": {
+          "type": "boolean"
+        },
+        "short": {
+          "type": "boolean"
+        },
+        "colloquial": {
+          "type": "boolean"
+        },
+        "historic": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "geoname_id",
+        "lang",
+        "name",
+        "preferred",
+        "short",
+        "colloquial",
+        "historic"
+      ]
+    },
+    "manifest": {
+      "description": "manifest.json: what the snapshot contains, where it came from and under what licence.",
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/schema_version"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/snapshot_id"
+        },
+        "generated_at": {
+          "type": "string"
+        },
+        "previous_snapshot": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/snapshot_id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "counts": {
+          "type": "object"
+        },
+        "files": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "sha256": {
+                "$ref": "#/$defs/sha256"
+              },
+              "bytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "content_type": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "sha256",
+              "bytes",
+              "content_type"
+            ]
+          }
+        },
+        "sources": {
+          "description": "Every input with the sha256 of the file we fetched: GeoNames publishes no checksums, so this is the only record.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "fetched_at": {
+                "type": "string"
+              },
+              "sha256": {
+                "$ref": "#/$defs/sha256"
+              },
+              "bytes": {
+                "type": "integer"
+              },
+              "last_modified": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "licence": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "id",
+              "url",
+              "fetched_at",
+              "sha256",
+              "bytes",
+              "licence"
+            ]
+          }
+        },
+        "licences": {
+          "type": "object"
+        },
+        "postal": {
+          "type": "object",
+          "properties": {
+            "countries": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "rows": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "partial_rows": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "coverage": {
+                    "type": "string"
+                  },
+                  "source": {
+                    "enum": [
+                      "geonames",
+                      "geonames_full"
+                    ]
+                  },
+                  "upstream": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "credit": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "licence": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "rows",
+                  "partial_rows",
+                  "coverage",
+                  "source",
+                  "upstream",
+                  "credit",
+                  "licence"
+                ]
+              }
+            },
+            "excluded": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  },
+                  "see": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reason",
+                  "see"
+                ]
+              }
+            }
+          },
+          "required": [
+            "countries",
+            "excluded"
+          ]
+        },
+        "disclaimer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "credits": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "sqlite_postal_omitted": {
+          "description": "Countries whose postal codes are in NDJSON.gz only, because they exceed the row cap that keeps a SQLite file small enough for a phone.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "sqlite_postal_newly_omitted": {
+          "description": "Countries that crossed the postal-row cap since the last snapshot: their postal codes are no longer in their SQLite file. Also listed in changes.json. Empty for the first snapshot.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "snapshot",
+        "generated_at",
+        "previous_snapshot",
+        "counts",
+        "files",
+        "sources",
+        "licences",
+        "disclaimer",
+        "credits",
+        "postal",
+        "sqlite_postal_omitted",
+        "sqlite_postal_newly_omitted"
+      ]
+    },
+    "latest": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/schema_version"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/snapshot_id"
+        },
+        "manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "schema_version",
+        "snapshot",
+        "manifest_sha256"
+      ]
+    },
+    "snapshots": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/schema_version"
+        },
+        "snapshots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/snapshot_id"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "published",
+                  "withdrawn"
+                ]
+              },
+              "published_at": {
+                "type": "string"
+              },
+              "manifest_sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "published_at",
+              "manifest_sha256"
+            ]
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "snapshots"
+      ]
+    },
+    "cell_city": {
+      "description": "What a nearest-city lookup needs of a city; the full row is in the city files.",
+      "type": "object",
+      "properties": {
+        "geoname_id": {
+          "$ref": "#/$defs/geoname_id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "names": {
+          "$ref": "#/$defs/names"
+        },
+        "lat": {
+          "$ref": "#/$defs/latitude"
+        },
+        "lon": {
+          "$ref": "#/$defs/longitude"
+        },
+        "country_code": {
+          "$ref": "#/$defs/country_code"
+        },
+        "admin1_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/kind"
+        },
+        "population": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "geoname_id",
+        "name",
+        "names",
+        "lat",
+        "lon",
+        "country_code",
+        "admin1_code",
+        "kind",
+        "population"
+      ]
+    },
+    "cell_file": {
+      "description": "cells/<gh3>.json, or cells/<gh3>/<gh4>.json when a gh3 cell was over the size cap: the active cities in a geohash cell. A client that needs the city nearest a point fetches that cell and its neighbours (cells/index.json lists them).",
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cell_city"
+          }
+        }
+      }
+    },
+    "cells_index_entry": {
+      "type": "object",
+      "properties": {
+        "cell": {
+          "type": "string",
+          "pattern": "^[0-9b-hjkmnp-z]{3}$"
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "bytes": {
+          "description": "The size of the cell file, or the sum of its children's when it was split.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "split": {
+          "description": "True when the cell was over the size cap: there is no cells/<gh3>.json, only the children.",
+          "type": "boolean"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "cell": {
+                "type": "string",
+                "pattern": "^[0-9b-hjkmnp-z]{4}$"
+              },
+              "rows": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "bytes": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "cell",
+              "rows",
+              "bytes"
+            ]
+          }
+        },
+        "neighbours": {
+          "description": "The non-empty cells around this one; fetch the 3x3 block to find the nearest city across a border.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9b-hjkmnp-z]{3}$"
+          }
+        }
+      },
+      "required": [
+        "cell",
+        "rows",
+        "bytes",
+        "split",
+        "children",
+        "neighbours"
+      ]
+    },
+    "cells_index_file": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        }
+      ],
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cells_index_entry"
+          }
+        }
+      }
+    }
+  }
+}
