@@ -179,13 +179,15 @@ final class Importer
      * stays flat (GB has 1.8 million rows): the postal codes that occur more than once
      * come from an index-only GROUP BY, a page at a time; only the rows of those codes are
      * read back, compared in PHP, and the repeats deleted by id. No window function and no
-     * subquery on the table being deleted from: that avoids the per-row subplan and the
-     * window sort a ROW_NUMBER delete needs (it ran as a nested loop on Postgres when the
+     * subquery on the table being deleted from: no per-row subplan and no window sort, which
+     * is what a ROW_NUMBER delete costs (Postgres chose a nested loop for it when the
      * country's rows were new and unanalysed), and it runs on any supported database. The
      * planner still chooses between a hash and a stream aggregate for the GROUP BY by what
-     * it knows of the table, so the cost is bounded by the pages times the rows of a code,
-     * not fixed. The comparison is exact, so a collation that ignores case or accents
-     * cannot merge two rows.
+     * it knows of the table. Under a hash aggregate every page re-reads the rest of the
+     * country's rows (postal_code > the last code of the previous page), so the cost grows
+     * with pages times the country's rows, not with one code's rows; that is fine at the
+     * measured sizes. "Index-only" holds once a vacuum has set the visibility map. The
+     * comparison is exact, so a collation that ignores case or accents cannot merge two rows.
      */
     private function dropRepeatedRows(string $table, string $country): int
     {
