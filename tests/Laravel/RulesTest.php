@@ -6,6 +6,7 @@ use Farzai\Geonames\Laravel\Rules\GeonamesAdmin1;
 use Farzai\Geonames\Laravel\Rules\GeonamesCity;
 use Farzai\Geonames\Laravel\Rules\GeonamesCountry;
 use Farzai\Geonames\Laravel\Rules\GeonamesPostalCode;
+use Farzai\Geonames\Laravel\Rules\ParentField;
 use Illuminate\Contracts\Validation\DataAwareRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Validator;
@@ -65,7 +66,10 @@ it('pairs each wildcard with the index at the same depth in nested arrays', func
         ->and(array_keys(validate($data, ['items.*.addresses.*.admin1' => 'geonames_admin1:items.*.addresses.*.country'])))
         ->toBe(['items.1.addresses.1.admin1'])
         ->and(array_keys(validate($data, ['items.*.addresses.*.admin1' => 'geonames_admin1:items.*.country'])))
-        ->toBe(['items.0.addresses.0.admin1', 'items.1.addresses.0.admin1', 'items.1.addresses.1.admin1']);
+        ->toBe(['items.0.addresses.0.admin1', 'items.1.addresses.0.admin1', 'items.1.addresses.1.admin1'])
+        ->and(ParentField::value('items', 'items.*.country', $data))->toBeNull()
+        ->and(ParentField::value('items', null, $data))->toBeNull()
+        ->and(ParentField::value('items', '', $data))->toBeNull();
 });
 
 it('says the data is not downloaded instead of throwing out of validation', function () {

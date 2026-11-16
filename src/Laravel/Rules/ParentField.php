@@ -8,8 +8,9 @@ use Illuminate\Support\Arr;
 
 /**
  * Finds the value of a parent field (`country`) for the attribute being validated.
- * Wildcards pair by position: attribute `addresses.2.city` with parent
- * `addresses.*.country` reads `addresses.2.country`.
+ * Each wildcard takes the attribute's key at the same depth: attribute
+ * `items.0.addresses.2.city` with parent `items.0.addresses.*.country` reads
+ * `items.0.addresses.2.country`.
  */
 final class ParentField
 {
@@ -21,13 +22,14 @@ final class ParentField
         if ($field === null || $field === '') {
             return null;
         }
-        if (str_contains($field, '*')) {
-            preg_match_all('/\.(\d+)(?=\.|$)/', '.'.$attribute, $matches);
-            foreach ($matches[1] as $index) {
-                $field = (string) preg_replace('/\*/', $index, $field, 1);
+        $keys = explode('.', $attribute);
+        $segments = explode('.', $field);
+        foreach ($segments as $depth => $segment) {
+            if ($segment === '*' && isset($keys[$depth])) {
+                $segments[$depth] = $keys[$depth];
             }
         }
 
-        return Arr::get($data, $field);
+        return Arr::get($data, implode('.', $segments));
     }
 }
