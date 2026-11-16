@@ -52,6 +52,22 @@ it('pairs wildcard arrays by position', function () {
     expect(array_keys($errors))->toBe(['addresses.2.admin1']);
 });
 
+it('pairs each wildcard with the index at the same depth in nested arrays', function () {
+    $this->fetch();
+
+    $data = ['items' => [
+        ['country' => 'US', 'addresses' => [['country' => 'TH', 'admin1' => '50'], ['country' => 'US', 'admin1' => 'CA']]],
+        ['country' => 'TH', 'addresses' => [['country' => 'US', 'admin1' => 'CA'], ['country' => 'TH', 'admin1' => 'CA']]],
+    ]];
+
+    expect(array_keys(validate($data, ['items.1.addresses.*.admin1' => 'geonames_admin1:items.1.addresses.*.country'])))
+        ->toBe(['items.1.addresses.1.admin1'])
+        ->and(array_keys(validate($data, ['items.*.addresses.*.admin1' => 'geonames_admin1:items.*.addresses.*.country'])))
+        ->toBe(['items.1.addresses.1.admin1'])
+        ->and(array_keys(validate($data, ['items.*.addresses.*.admin1' => 'geonames_admin1:items.*.country'])))
+        ->toBe(['items.0.addresses.0.admin1', 'items.1.addresses.0.admin1', 'items.1.addresses.1.admin1']);
+});
+
 it('says the data is not downloaded instead of throwing out of validation', function () {
     // Countries are bundled, admin1 is not: nothing was fetched.
     $errors = validate(['c' => 'TH', 'a' => '50'], ['c' => 'geonames_country', 'a' => 'geonames_admin1:c']);
