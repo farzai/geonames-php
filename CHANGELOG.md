@@ -2,6 +2,14 @@
 
 All notable changes to `geonames-php` will be documented in this file.
 
+## 3.0.1 - 2026-11-16
+
+### Fixed
+
+- Laravel validation rules: in nested arrays, a parent field such as `items.*.addresses.*.country` now reads the value from the same row as the attribute being validated. Before, the wildcards could pair with the wrong index, so a rule like `geonames_admin1` checked against another row's country. (#65, closes #59)
+
+**Full Changelog**: https://github.com/farzai/geonames-php/compare/3.0.0...3.0.1
+
 ## 3.0.0 - 2026-10-16
 
 Rewrite around the verified Farzai GeoNames snapshots. Read UPGRADING.md before you upgrade from 2.x.
